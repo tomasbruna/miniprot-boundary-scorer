@@ -3,8 +3,8 @@ src
 *.d
 nbproject
 examples
-test/t_spaln_boundary_scorer
-spaln_boundary_scorer
+test/t_miniprot_boundary_scorer
+miniprot_boundary_scorer
 test/test_files/test_1.ali
 out
 scripts

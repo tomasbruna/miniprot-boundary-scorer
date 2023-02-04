@@ -18,10 +18,8 @@ using namespace std;
 void printUsage(char * name) {
     cout << "Usage: " << name << " < input -o output_file -s matrix_file "
             "[-w integer] [-k kernel] [-e min_exon_score] [-x min_initial_exon_score] [-i min_initial_intron_score] [-r]" << endl << endl;
-    cout << "The program can parse multiple separate alignments saved in the same\n"
-            "input. The input is read from stdin. Each input alignment is assumed\n"
-            "to be on a single line (number of characters per line, controlled\n"
-            "by -l option in Spaln, is larger than the alignment length)." << endl << endl;
+    cout << "The program parses the result of miniprot's \"--aln\" output."
+            "The input is read from stdin.\n" << endl << endl;
     cout << "Options:" << endl;
     cout << "   -o Where to save output file" << endl;
     cout << "   -s Path to amino acid scoring matrix" << endl;

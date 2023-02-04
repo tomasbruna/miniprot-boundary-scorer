@@ -26,13 +26,14 @@ double ScoreMatrix::getScore(char a, char b) const {
         }
     }
 
+    // TOOD: Check how miniprot handles this case.
     // This is caused by frameshifts and occasional shift of how gaps are printed
     // in alignment (Spaln specific). In any case, penalty -4 is reasonable to penalize
     // both of these cases -- if it really is a frameshift, the rest of the alignment
     // also receives -4 penalty. If it is the gap case, the rest of the alignment
     // after gap is printed correctly.
-    // cerr << "Warning: score for (" << a << "," << b << ") is not defined in the "
-    //        "matrix. Returning " << UNKNOWN_SCORE << " instead." << endl;
+    cerr << "Warning: score for (" << a << "," << b << ") is not defined in the "
+            "matrix. Returning " << UNKNOWN_SCORE << " instead." << endl;
 
     return UNKNOWN_SCORE;
 }

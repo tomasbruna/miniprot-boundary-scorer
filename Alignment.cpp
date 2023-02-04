@@ -505,7 +505,7 @@ void Alignment::printIntrons(ofstream& ofs, char strand,
         spliceSites.append("_");
         spliceSites.append(introns[i].acceptor, 2);
 
-        ofs << gene << "\tSpaln_scorer\tIntron\t";
+        ofs << gene << "\tminiprot_scorer\tIntron\t";
         if (forward) {
             ofs << pairs[introns[i].start].realPosition << "\t";
             ofs << pairs[introns[i].end].realPosition << "\t";
@@ -542,7 +542,7 @@ void Alignment::printStart(ofstream& ofs, char strand,
         }
     }
 
-    ofs << gene << "\tSpaln_scorer\tstart_codon\t";
+    ofs << gene << "\tminiprot_scorer\tstart_codon\t";
     if (forward) {
         ofs << pairs[start->position].realPosition << "\t";
         ofs << pairs[start->position + 2].realPosition  << "\t";
@@ -585,7 +585,7 @@ void Alignment::printExons(ofstream& ofs, char strand, double minExonScore,
                 continue;
             }
         }
-        ofs << gene << "\tSpaln_scorer\tCDS\t";
+        ofs << gene << "\tminiprot_scorer\tCDS\t";
         if (forward) {
             ofs << pairs[exons[i]->start].realPosition << "\t";
             ofs << pairs[exons[i]->end].realPosition << "\t";
@@ -603,7 +603,7 @@ void Alignment::printExons(ofstream& ofs, char strand, double minExonScore,
 
 void Alignment::printStop(ofstream& ofs, char strand, double minExonScore) {
     if (stop != NULL && stop->exon->score >= minExonScore) {
-        ofs << gene << "\tSpaln_scorer\tstop_codon\t";
+        ofs << gene << "\tminiprot_scorer\tstop_codon\t";
         if (forward) {
             ofs << pairs[stop->position].realPosition << "\t";
             ofs << pairs[stop->position + 2].realPosition  << "\t";
