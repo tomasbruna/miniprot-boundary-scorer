@@ -117,14 +117,6 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    if (kernelType != "triangular" && kernelType != "box" &&
-            kernelType != "parabolic" && kernelType != "triweight") {
-        cerr << "error: Invalid kernel. Valid options are \"box\","
-                "\"triangular\", \"parabolic\" and \"triweight\" kernels." << endl;
-        printUsage(argv[0]);
-        return 1;
-    }
-
     ScoreMatrix * scoreMatrix = new ScoreMatrix();
     if (!scoreMatrix->loadFromFile(matrixFile)) {
         cerr << "error: Could not load scoring matrix" << endl;
@@ -141,6 +133,12 @@ int main(int argc, char** argv) {
         kernel = new ParabolicKernel();
     } else if (kernelType == "triweight") {
         kernel = new TriweightKernel();
+    } else {
+        cerr << "error: Invalid kernel. Valid options are \"box\","
+                "\"triangular\", \"parabolic\" and \"triweight\" kernels." <<
+                endl;
+        printUsage(argv[0]);
+        return 1;
     }
 
     Parser fileParser;
