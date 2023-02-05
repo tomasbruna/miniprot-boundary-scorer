@@ -52,40 +52,31 @@ int Alignment::parse(istream& inputStream, string headerLine) {
         return status;
     }
 
-    // Get to the alignment itself
-    getline(inputStream, line);
-    while (line.substr(0, 9) != "ALIGNMENT") {
-        if (!getline(inputStream, line)) {
-            cerr << "error: Alignment is missing after header " << endl;
-            return FORMAT_FAIL;
-        }
-    }
-    if (!getline(inputStream, line) || line != "") {
-        cerr << "error: Empty line expected after ALIGNMENT keyword" << endl;
-        return FORMAT_FAIL;
-    }
-
-    // Load the alignment into array
+    // Load the alignment block and check its headers
+    bool blockHeaderErr = false;
     for (i = 0; i < BLOCK_ITEMS_CNT; i++) {
         if (getline(inputStream, line) && !line.empty() && line.size() > BLOCK_OFFSET) {
             blockLines[i] = line;
-            // Get alignment start number
-            if (i == 1) {
-                dnaStart = atoi(line.substr(0, BLOCK_OFFSET).c_str());
-                if (dnaStart <= 0) {
-                    cerr << "error: Could not read dna alignment start position" << endl;
-                    return FORMAT_FAIL;
-                }
-                realPositionCounter = dnaStart;
-            } else if (i == 2) {
-                proteinStart = atoi(line.substr(0, BLOCK_OFFSET).c_str());
-                if (proteinStart <= 0) {
-                    cerr << "error: Could not read dna alignment start position" << endl;
-                    return FORMAT_FAIL;
-                }
+            string lineStart = line.substr(0, BLOCK_OFFSET);
+            switch(i) {
+                case 0:
+                    blockHeaderErr = (lineStart != "##ATN\t");
+                    break;
+                case 1:
+                    blockHeaderErr = (lineStart != "##ATA\t");
+                    break;
+                case 2:
+                    blockHeaderErr = (lineStart != "##AAS\t");
+                    break;
+                case 3:
+                    blockHeaderErr = (lineStart != "##AQA\t");
+                    break;
             }
         } else {
-            printLineError();
+            blockHeaderErr = true;
+        }
+        if (blockHeaderErr) {
+            cerr << "error: Unexpected alignment block headers" << endl;
             return FORMAT_FAIL;
         }
     }

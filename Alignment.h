@@ -186,8 +186,8 @@ private:
                     double minInitialExonScore, double minInitialIntronScore);
     void printStop(ofstream & ofs, char strand, double minExonScore);
 
-    static const int BLOCK_ITEMS_CNT = 3;
-    static const int BLOCK_OFFSET = 9;
+    static const int BLOCK_ITEMS_CNT = 4;
+    static const int BLOCK_OFFSET = 6;
     /// Starting position of the alignment in DNA
     int dnaStart;
     /// Starting position of the alignment in protein
