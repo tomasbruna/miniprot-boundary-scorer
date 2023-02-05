@@ -72,6 +72,7 @@ int Alignment::parse(istream& inputStream, string headerLine) {
                     blockHeaderErr = (lineStart != "##AQA\t");
                     break;
             }
+            blockLines[i] = blockLines[i].substr(BLOCK_OFFSET);
         } else {
             blockHeaderErr = true;
         }
@@ -80,23 +81,6 @@ int Alignment::parse(istream& inputStream, string headerLine) {
             return FORMAT_FAIL;
         }
     }
-
-    // Trim the alignment strings for easier parsing.
-    // Any symbol in DNA other than space before pipe signifies the true end of
-    // alignment. Looking for the first whitespace in DNA does not work as there
-    // might be gaps inside introns
-    int pipePosition = blockLines[1].find("|");
-    blockLength = blockLines[1].find_last_not_of(" ", pipePosition - 1) - BLOCK_OFFSET  + 1;
-    for (i = 0; i < BLOCK_ITEMS_CNT; i++) {
-        blockLines[i] = blockLines[i].substr(BLOCK_OFFSET, blockLength);
-        if (blockLines[i].size() != blockLength) {
-            printLineError();
-            return FORMAT_FAIL;
-        }
-    }
-
-    // Unify gaps
-    replace(blockLines[1].begin(), blockLines[1].end(), ' ', '-');
     // Start actual parsing
     parseBlock(blockLines);
 
@@ -108,11 +92,6 @@ int Alignment::parse(istream& inputStream, string headerLine) {
     return READ_SUCCESS;
 }
 
-void Alignment::printLineError() {
-    cerr << "warning: error in alignment " << gene << "-" << protein;
-    cerr << ": corrupted alignment - wrong line length.";
-    cerr << " The rest of this alignment is skipped." << endl;
-}
 
 int Alignment::parseHeader(string headerLine) {
     vector<string> cols;

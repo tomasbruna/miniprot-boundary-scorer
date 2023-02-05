@@ -145,7 +145,6 @@ private:
      * Assign phases to all positions
      */
     void assignCodonPhases();
-    void printLineError();
     /**
      * Detect and save introns.
      * The function also retrieves information associated with the intron
