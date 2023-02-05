@@ -41,13 +41,11 @@ void Alignment::clear() {
     stop = NULL;
 }
 
-int Alignment::parse(istream& inputStream, string headerLine, bool forward) {
+int Alignment::parse(istream& inputStream, string headerLine) {
     clear();
-    this->forward = forward;
     vector<string> blockLines(BLOCK_ITEMS_CNT);
     string line;
 
-    // Read header
     int status = parseHeader(headerLine);
     if (status != READ_SUCCESS) {
         cerr << "error: Invalid alignment header " << endl;
@@ -126,21 +124,24 @@ void Alignment::printLineError() {
 }
 
 int Alignment::parseHeader(string headerLine) {
-    bool geneParsed = false;
-    for (unsigned int i = 0; i < headerLine.size(); i++) {
-        if (headerLine[i] == '>' || headerLine[i] == '<') {
-            if (!geneParsed) {
-                int length = headerLine.find(" ", i + 1) - i - 1;
-                gene = headerLine.substr(i + 1, length);
-                geneParsed = true;
-            } else {
-                int length = headerLine.find(" ", i + 1) - i - 1;
-                protein = headerLine.substr(i + 1, length);
-                return READ_SUCCESS;
-            }
-        }
+    vector<string> cols;
+    istringstream iss(headerLine);
+    string col;
+    while(getline(iss, col, '\t')) {
+         cols.push_back(col);
     }
-    return FORMAT_FAIL;
+    if (cols.size() != 19) {
+        cerr << "error: Unexpected number of columns in the header " << endl;
+        return FORMAT_FAIL;
+    }
+
+    protein = cols[0];
+    forward = false;
+    if (cols[4] == "+") {
+        forward = true;
+    }
+    // TODO: Load other relevant info.
+    return READ_SUCCESS;
 }
 
 void Alignment::parseBlock(const vector<string>& lines) {

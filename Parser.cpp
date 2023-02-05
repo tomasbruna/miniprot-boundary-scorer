@@ -31,10 +31,8 @@ int Parser::parse(string outputFile) {
 int Parser::parseNext() {
     string line;
     while (getline(cin, line)) {
-        if (line.substr(0,1) == ">") {
-            return alignment.parse(cin, line, true);
-        } else if (processReverse && line.substr(0,1) == "<") {
-            return alignment.parse(cin, line, false);
+        if (line.substr(0,1) != "#") {
+            return alignment.parse(cin, line);
         }
     }
 

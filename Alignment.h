@@ -23,9 +23,8 @@ public:
      * @param fstream    File stream starting at the position of
      *                    the alignment start.
      * @param headerLine Header line associated with this alignment
-     * @param forward    Whether the alignment is on forward strand
      */
-    int parse(istream & inputStream, string headerLine, bool forward);
+    int parse(istream & inputStream, string headerLine);
     /**
      * @return Name of the aligned gene
      */
