@@ -175,36 +175,39 @@ bool Alignment::gapOrNT(char a) {
 }
 
 void Alignment::assignCodonPhases() {
+    int state = 0;
     for (unsigned int i = 0; i < blockLength; i++) {
-        if (pairs[i].translatedCodon == ' ' && pairs[i].type == 'e') {
-            if (i == 0) {
-                pairs[i].translatedCodon = '1';
-            } else if (i == blockLength - 1) {
-                pairs[i].translatedCodon = '3';
-            } else if (gapOrAA(pairs[i + 1].translatedCodon)) {
-                pairs[i].translatedCodon = '1';
-            } else if (gapOrAA(pairs[i - 1].translatedCodon)) {
-                pairs[i].translatedCodon = '3';
-            } else if (pairs[i + 1].type == 'i') {
-                pairs[i].translatedCodon = '1';
-            } else if (pairs[i - 1].type == 'i') {
-                pairs[i].translatedCodon = '3';
-            }
+        //TODO: What does a "$" sign mean? Probably a frameshift deletion.
+        // Check for any other warnings of this type.
+        if (gapOrAA(pairs[i + 1].translatedCodon) != gapOrAA(pairs[i + 1].protein)) {
+            cerr << "Warning: Mismatch at alignment position " << i <<
+                    " in the alignment of " << protein << endl;
         }
 
-        if (pairs[i].protein == ' ' && pairs[i].type == 'e') {
+        if (pairs[i].type != 'e') {
+            continue;
+        }
+
+        if (gapOrAA(pairs[i].translatedCodon)) {
+            state = 1;
+        } else {
+            state++;
+
+            // Deal with out-of-phase alignment starts
+            // TODO: Check whether this even happens.
             if (i == 0) {
-                pairs[i].protein = '1';
-            } else if (i == blockLength - 1) {
-                pairs[i].protein = '3';
-            } else if (gapOrAA(pairs[i + 1].protein)) {
-                pairs[i].protein = '1';
-            } else if (gapOrAA(pairs[i - 1].protein)) {
-                pairs[i].protein = '3';
-            } else if (pairs[i + 1].type == 'i') {
-                pairs[i].protein = '1';
-            } else if (pairs[i - 1].type == 'i') {
-                pairs[i].protein = '3';
+                cerr << "Warning: and an out-of-phase alignment start" <<
+                        " in the alignment of " << protein << endl;
+                if (gapOrAA(pairs[i + 1].translatedCodon)) {
+                    state = 3;
+                } else {
+                    state = 2;
+                }
+            }
+
+            if (pairs[i].translatedCodon == '.'){
+                pairs[i].translatedCodon = to_string(state).c_str()[0];
+                pairs[i].protein = to_string(state).c_str()[0];
             }
         }
     }
