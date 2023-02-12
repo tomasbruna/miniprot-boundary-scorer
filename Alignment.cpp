@@ -608,19 +608,19 @@ void Alignment::printStop(ofstream& ofs, char strand, double minExonScore) {
 
 void Alignment::print(ostream& os) {
     for (unsigned int i = 0; i < blockLength; i++) {
-        os << pairs[i].translatedCodon;
-    }
-    os << endl;
-    for (unsigned int i = 0; i < blockLength; i++) {
         os << pairs[i].nucleotide;
     }
     os << endl;
     for (unsigned int i = 0; i < blockLength; i++) {
-        os << pairs[i].protein;
+        os << pairs[i].translatedCodon;
     }
     os << endl;
     for (unsigned int i = 0; i < blockLength; i++) {
         os << pairs[i].type;
+    }
+    os << endl;
+    for (unsigned int i = 0; i < blockLength; i++) {
+        os << pairs[i].protein;
     }
     os << endl;
 }
