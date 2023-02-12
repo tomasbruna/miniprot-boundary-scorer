@@ -81,6 +81,9 @@ int Alignment::parse(istream& inputStream, string headerLine) {
             return FORMAT_FAIL;
         }
     }
+
+    blockLength = blockLines[0].size() - BLOCK_OFFSET;
+
     // Start actual parsing
     parseBlock(blockLines);
 
@@ -111,26 +114,33 @@ int Alignment::parseHeader(string headerLine) {
         forward = true;
     }
     // TODO: Load other relevant info.
+    dnaStart = atoi(cols[7].c_str());
+    realPositionCounter = dnaStart;
     return READ_SUCCESS;
 }
 
 void Alignment::parseBlock(const vector<string>& lines) {
     // Parse individual pairs
     for (unsigned i = 0; i < lines[0].size(); i++) {
-        AlignedPair pair(lines[0][i], lines[1][i], lines[2][i], insideIntron);
+        AlignedPair pair(lines[0][i], lines[1][i], lines[3][i], insideIntron);
 
         checkForIntron(pair);
         checkForStart(pair);
         checkForStop(pair);
 
-        if (pair.nucleotide != '-' && pair.nucleotide != ' ') {
+        // TODO: Another check to potentially remove
+        if (pair.nucleotide == ' ') {
+            cerr << "ATTENTION: UNEXPECTED GAP";
+        }
+
+        if (pair.nucleotide != '-' ) {
             if (forward) {
                 pair.realPosition = realPositionCounter++;
             } else {
                 pair.realPosition = realPositionCounter--;
             }
         } else {
-            // Don't increment the counter
+            // Don't increment the counter for gaps
             if (forward) {
                 pair.realPosition = realPositionCounter - 1;
             } else {
@@ -138,7 +148,7 @@ void Alignment::parseBlock(const vector<string>& lines) {
             }
         }
 
-        // Reuse space if possible
+        // Reuse space if possible, just memory mgmt
         if ((int) pairs.size() <= index) {
             pairs.push_back(pair);
         } else {
@@ -151,6 +161,14 @@ void Alignment::parseBlock(const vector<string>& lines) {
 
 bool Alignment::gapOrAA(char a) {
     if ((a >= 'A' && a <= 'Z') || a == '-') {
+        return true;
+    }
+    return false;
+}
+
+bool Alignment::gapOrNT(char a) {
+    if (a == 'A' || a == 'C' || a == 'G' || a == 'T' ||
+        a == 'a' || a == 'c' || a == 'g' || a == 't' || a == '-') {
         return true;
     }
     return false;
@@ -619,23 +637,30 @@ int Alignment::getLength() {
     return index;
 }
 
-Alignment::AlignedPair::AlignedPair(char tc, char n, char p, bool insideIntron) :
+Alignment::AlignedPair::AlignedPair(char n, char tc, char p, bool insideIntron) :
 nucleotide(n),
 translatedCodon(tc),
 protein(p) {
-    if (islower(n) || (insideIntron && n == '-')) {
+    // TODO: Delete this check if there are no gaps inside introns
+    if (insideIntron && n == '-') {
+        cerr << "ATTENTION: A GAP INSIDE AN INTRON" << endl;
+    }
+
+    if (!gapOrNT(n)) {
+        cerr << "Warning: Unexpected nucleotide \"" << n << "\". " <<
+                "This is probably miniprot's compact notation for long "
+                "introns. Not supported yet by this parser." << endl;
+    }
+
+    if (islower(n)) {
         this->type = 'i';
     } else {
         this->type = 'e';
     }
     // Assign an amino acid to a stop codon, so it is treated as a gap
+    // TODO: Higher penalty?
     if (translatedCodon == '*') {
         translatedCodon = 'A';
-    }
-
-    // Fix strange J amino acid which is in fact S
-    if (translatedCodon == 'J') {
-        translatedCodon = 'S';
     }
 }
 

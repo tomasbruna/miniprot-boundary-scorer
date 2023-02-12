@@ -65,7 +65,7 @@ private:
         /**
          * Save pair and determine exon/intron
          */
-        AlignedPair(char tc, char n, char p, bool insideIntron);
+        AlignedPair(char n, char tc, char p, bool insideIntron);
         /**
          * Return amino acid score
          * @return AA score
@@ -141,6 +141,10 @@ private:
      * Check if the given character is an amino acid or a gap
      */
     bool gapOrAA(char a);
+    /**
+     * Check if the given character is a nucleotide or a gap
+     */
+    static bool gapOrNT(char a);
     /**
      * Assign phases to all positions
      */
