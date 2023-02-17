@@ -82,7 +82,7 @@ int Alignment::parse(istream& inputStream, string headerLine) {
         }
     }
 
-    blockLength = blockLines[0].size() - BLOCK_OFFSET;
+    blockLength = blockLines[0].size();
 
     // Start actual parsing
     parseBlock(blockLines);
