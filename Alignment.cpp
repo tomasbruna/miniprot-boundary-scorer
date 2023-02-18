@@ -110,11 +110,14 @@ int Alignment::parseHeader(string headerLine) {
 
     protein = cols[0];
     forward = false;
+    // miniprot is using bed-style coordinates
     if (cols[4] == "+") {
         forward = true;
+        dnaStart = atoi(cols[7].c_str()) + 1;
+    } else {
+        dnaStart = atoi(cols[8].c_str());
     }
     // TODO: Load other relevant info.
-    dnaStart = atoi(cols[7].c_str());
     realPositionCounter = dnaStart;
     return READ_SUCCESS;
 }
@@ -592,7 +595,11 @@ void Alignment::printExons(ofstream& ofs, char strand, double minExonScore,
             ofs << pairs[exons[i]->end].realPosition << "\t";
         } else {
             ofs << pairs[exons[i]->end].realPosition << "\t";
-            ofs << pairs[exons[i]->start].realPosition << "\t";
+            if (exons[i]->gapStart) {
+                ofs << pairs[exons[i]->start].realPosition - 1 << "\t";
+            } else {
+                ofs << pairs[exons[i]->start].realPosition << "\t";
+            }
         }
         ofs << ".\t" << strand << "\t" << exons[i]->phase << "\tprot=" << protein;
         ofs << "; exon_id=" << i + 1 << ";";
