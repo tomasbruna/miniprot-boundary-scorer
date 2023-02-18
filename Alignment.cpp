@@ -162,8 +162,8 @@ bool Alignment::gapOrAA(char a) {
 }
 
 bool Alignment::gapOrNT(char a) {
-    if (a == 'A' || a == 'C' || a == 'G' || a == 'T' ||
-        a == 'a' || a == 'c' || a == 'g' || a == 't' || a == '-') {
+    if (a == 'A' || a == 'C' || a == 'G' || a == 'T' || a == 'N' ||
+        a == 'a' || a == 'c' || a == 'g' || a == 't' || a == 'n' || a == '-') {
         return true;
     }
     return false;
