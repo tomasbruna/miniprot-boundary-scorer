@@ -179,9 +179,12 @@ void Alignment::assignCodonPhases() {
     for (unsigned int i = 0; i < blockLength; i++) {
         //TODO: What does a "$" sign mean? Probably a frameshift deletion.
         // Check for any other warnings of this type.
-        if (gapOrAA(pairs[i + 1].translatedCodon) != gapOrAA(pairs[i + 1].protein)) {
-            cerr << "Warning: Mismatch at alignment position " << i <<
+        if (gapOrAA(pairs[i].translatedCodon) != gapOrAA(pairs[i].protein)) {
+            if (i != blockLength - 3) {
+                cerr << blockLength << endl;
+                cerr << "Warning: Mismatch at alignment position " << i + 1 <<
                     " in the alignment of " << protein << endl;
+            }
         }
 
         if (pairs[i].type != 'e') {
