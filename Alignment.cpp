@@ -122,16 +122,11 @@ int Alignment::parseHeader(string headerLine) {
 void Alignment::parseBlock(const vector<string>& lines) {
     // Parse individual pairs
     for (unsigned i = 0; i < lines[0].size(); i++) {
-        AlignedPair pair(lines[0][i], lines[1][i], lines[3][i], insideIntron);
+        AlignedPair pair(lines[0][i], lines[1][i], lines[3][i]);
 
         checkForIntron(pair);
         checkForStart(pair);
         checkForStop(pair);
-
-        // TODO: Another check to potentially remove
-        if (pair.nucleotide == ' ') {
-            cerr << "ATTENTION: UNEXPECTED GAP";
-        }
 
         if (pair.nucleotide != '-' ) {
             if (forward) {
@@ -257,7 +252,12 @@ void Alignment::checkForIntron(AlignedPair& pair) {
         donorFlag = true;
     } else if (insideIntron && pair.type != 'i') { // intron end
         insideIntron = false;
-        exons.push_back(new Exon(index));
+
+        if (pair.nucleotide != '-') {
+            exons.push_back(new Exon(index));
+        } else {
+            exons.push_back(new Exon(index, true));
+        }
 
         // Make the decision about exon phase based on how the preceeding exon
         // was split. Many checks remain from the Spaln parser that contained
@@ -584,7 +584,11 @@ void Alignment::printExons(ofstream& ofs, char strand, double minExonScore,
         }
         ofs << gene << "\tminiprot_scorer\tCDS\t";
         if (forward) {
-            ofs << pairs[exons[i]->start].realPosition << "\t";
+            if (exons[i]->gapStart) {
+                ofs << pairs[exons[i]->start].realPosition + 1 << "\t";
+            } else {
+                ofs << pairs[exons[i]->start].realPosition << "\t";
+            }
             ofs << pairs[exons[i]->end].realPosition << "\t";
         } else {
             ofs << pairs[exons[i]->end].realPosition << "\t";
@@ -645,14 +649,10 @@ int Alignment::getLength() {
     return index;
 }
 
-Alignment::AlignedPair::AlignedPair(char n, char tc, char p, bool insideIntron) :
+Alignment::AlignedPair::AlignedPair(char n, char tc, char p) :
 nucleotide(n),
 translatedCodon(tc),
 protein(p) {
-    // TODO: Delete this check if there are no gaps inside introns
-    if (insideIntron && n == '-') {
-        cerr << "ATTENTION: A GAP INSIDE AN INTRON" << endl;
-    }
 
     if (!gapOrNT(n)) {
         cerr << "Warning: Unexpected nucleotide \"" << n << "\". " <<
@@ -660,7 +660,9 @@ protein(p) {
                 "introns. Not supported yet by this parser." << endl;
     }
 
-    if (islower(n)) {
+    if (n == '-') {
+        this->type = 'e';
+    } else if (islower(n)) {
         this->type = 'i';
     } else {
         this->type = 'e';
@@ -682,8 +684,9 @@ Alignment::Intron::Intron() {
     gap = false;
 }
 
-Alignment::Exon::Exon(int start) {
+Alignment::Exon::Exon(int start, bool gapStart) {
     this->start = start;
+    this->gapStart = gapStart;
     phase = 0;
     scoreSet = false;
     initial = false;

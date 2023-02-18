@@ -65,7 +65,7 @@ private:
         /**
          * Save pair and determine exon/intron
          */
-        AlignedPair(char n, char tc, char p, bool insideIntron);
+        AlignedPair(char n, char tc, char p);
         /**
          * Return amino acid score
          * @return AA score
@@ -91,13 +91,14 @@ private:
 
     /// Structure for parsed exons
     struct Exon {
-        Exon(int start);
+        Exon(int start, bool gapStart = false);
         int start, end;
         double score;
         double normalizedScore;
         int phase;
         bool scoreSet;
         bool initial;
+        bool gapStart;
     };
 
     /// Structure for parsed starts and stops
