@@ -180,8 +180,8 @@ void Alignment::assignCodonPhases() {
         //TODO: What does a "$" sign mean? Probably a frameshift deletion.
         // Check for any other warnings of this type.
         if (gapOrAA(pairs[i].translatedCodon) != gapOrAA(pairs[i].protein)) {
-            if (i != blockLength - 3) {
-                cerr << blockLength << endl;
+            if ((pairs[i].translatedCodon != '*' || pairs[i].protein != '-') &&
+                 i != blockLength - 3) {
                 cerr << "Warning: Mismatch at alignment position " << i + 1 <<
                     " in the alignment of " << protein << endl;
             }
@@ -665,8 +665,8 @@ protein(p) {
     } else {
         this->type = 'e';
     }
-    // Assign an amino acid to a stop codon, so it is treated as a gap
-    // TODO: Higher penalty?
+
+    // TODO: Dealing with the stop...
     if (translatedCodon == '*') {
         translatedCodon = 'A';
     }
