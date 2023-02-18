@@ -217,21 +217,26 @@ void Alignment::assignCodonPhases() {
 }
 
 void Alignment::checkForIntron(AlignedPair& pair) {
-    // Some alignments start with a gap or intron, do not create initial exon
-    // in such cases
     int alignmentPosition;
     if (forward) {
         alignmentPosition = realPositionCounter - dnaStart + 1;
     } else {
         alignmentPosition = dnaStart - realPositionCounter + 1;
     }
-    if (alignmentPosition == 1 && pair.type == 'e' && pair.nucleotide != '-') {
+
+    // Deal with the alignemnt start and end - a special case of intron boundary
+    if (alignmentPosition == 1 || index == (int) blockLength - 1) {
+        if (pair.type != 'e' || pair.nucleotide == '-') {
+            cerr << "Warning: Unexpected alignment start/end" <<
+                    " in the alignment of " << protein << endl;
+        }
+
+    }
+    if (alignmentPosition == 1) {
         exons.push_back(new Exon(index));
     }
-
-    // Alignment end
-    if (index == (int) blockLength - 1 && pair.type == 'e') {
-        exons.back()->end = index;
+    if (index == (int) blockLength - 1) {
+        exons.back()->end = index - 3;
     }
 
     if (donorFlag) {
@@ -254,44 +259,41 @@ void Alignment::checkForIntron(AlignedPair& pair) {
         insideIntron = false;
         exons.push_back(new Exon(index));
 
-        // Make the decision about exon phase based on
-        // how the preceeding exon was split.
+        // Make the decision about exon phase based on how the preceeding exon
+        // was split. Many checks remain from the Spaln parser that contained
+        // strange exons, but it's OK to keep them as formatting checks.
         if (introns.back().start != 0) {
             if (gapOrAA(pairs[introns.back().start - 1].protein)) {
-                exons.back()->phase = 1;
-            } else if (introns.back().start - 2 < 0) {
-                // Reached start of alignment
                 exons.back()->phase = 2;
+            } else if (introns.back().start - 2 < 0) {
+                cerr << "Warning: Unexpected initial exon of length 1" <<
+                        " in the alignment of " << protein << endl;
+                exons.back()->phase = 1;
             } else {
                 int position = introns.back().start - 2;
                 if (pairs[position].type != 'e') {
-                    // Check if still in exon (some exons are just 1 nt long).
+                    // Check if still in exon (if the exon is just 1 nt long).
                     // If not, take last nt from next exon upstream
+                    cerr << "Warning: Unexpected exon of length 1" <<
+                        " in the alignment of " << protein << endl;
                     position = introns[introns.size() - 2].start - 1;
                 }
                 if (position >= 0 && gapOrAA(pairs[position].protein)) {
-                    exons.back()->phase = 0;
+                    exons.back()->phase = 1;
                 } else {
-                    exons.back()->phase = 2;
+                    exons.back()->phase = 0;
                 }
             }
         }
 
-        // Frameshift, remove false intron
-        if (index - introns.back().start < 3) {
-            introns.pop_back();
-        } else {
-            introns.back().end = index - 1;
-            introns.back().acceptor[0] = pairs[index - 2].nucleotide;
-            introns.back().acceptor[1] = pairs[index - 1].nucleotide;
-            if (introns.back().start != 0 && introns.back().gap == false) {
-                introns.back().complete = true;
-            }
-            introns.back().rightExon = exons.back();
+        introns.back().end = index - 1;
+        introns.back().acceptor[0] = pairs[index - 2].nucleotide;
+        introns.back().acceptor[1] = pairs[index - 1].nucleotide;
+        // TODO: Another unneccessary check to remove
+        if (introns.back().start != 0 && introns.back().gap == false) {
+            introns.back().complete = true;
         }
-    } else if (insideIntron && pair.nucleotide == '-') {
-        // Gap (AA aligned) inside introns, do not report these introns
-        introns.back().gap = true;
+        introns.back().rightExon = exons.back();
     }
 }
 
