@@ -66,11 +66,18 @@ private:
          * Save pair and determine exon/intron
          */
         AlignedPair(char n, char tc, char p);
+        static const int INTRON_FRAMESHIFT = -4;
         /**
          * Return amino acid score
+         *
+         * The intron frameshift flag indicates that the intron border is in
+         * a "frameshift" state and should be penalized with the
+         * INTRON_FRAMESHIFT penalty instead.
+         *
          * @return AA score
          */
-        double score(const ScoreMatrix * scoreMatrix);
+        double score(const ScoreMatrix * scoreMatrix,
+                     bool introFrameshift = false);
         char nucleotide;
         /**
          * The protein translations and proteins are saved as follows: 1A3

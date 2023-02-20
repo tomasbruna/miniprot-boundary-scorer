@@ -386,24 +386,38 @@ double Alignment::scoreIntron(Intron& intron, int windowWidth) {
 }
 
 void Alignment::scoreLeft(Intron & intron, int start, int windowWidth) {
-    for (int i = start; i > (start - windowWidth * 3); i -= 3) {
-        // Check for end of local alignment
-        if (i < 0 || pairs[i].type != 'e') {
-            return;
+    bool fs = false;
+    for (int i = start; i > (start - windowWidth * 3); i -= 1) {
+        if (pairs[i].translatedCodon == '$' ||
+            pairs[i].translatedCodon == '!') {
+            fs = true;
         }
-        double weight = kernel->getWeight((i - start) / 3);
-        intron.leftScore += pairs[i].score(scoreMatrix) * weight;
+        if (i % 3 == start % 3) {
+            // Check for end of local alignment
+            if (i < 0 || pairs[i].type != 'e') {
+                return;
+            }
+            double weight = kernel->getWeight((i - start) / 3);
+            intron.leftScore += pairs[i].score(scoreMatrix, fs) * weight;
+        }
     }
 }
 
 void Alignment::scoreRight(Intron & intron, int start, int windowWidth) {
-    for (int i = start; i < (start + windowWidth * 3); i += 3) {
-        // Check for end of local alignment
-        if (i >= index || pairs[i].type != 'e') {
-            return;
+    bool fs = false;
+    for (int i = start; i < (start + windowWidth * 3); i += 1) {
+        if (pairs[i].translatedCodon == '$' ||
+            pairs[i].translatedCodon == '!') {
+            fs = true;
         }
-        double weight = kernel->getWeight((i - start) / 3);
-        intron.rightScore += pairs[i].score(scoreMatrix) * weight;
+        if (i % 3 == start % 3) {
+            // Check for end of local alignment
+            if (i >= index || pairs[i].type != 'e') {
+                return;
+            }
+            double weight = kernel->getWeight((i - start) / 3);
+            intron.rightScore += pairs[i].score(scoreMatrix, fs) * weight;
+        }
     }
 }
 
@@ -674,7 +688,12 @@ protein(p) {
     }
 }
 
-double Alignment::AlignedPair::score(const ScoreMatrix * scoreMatrix) {
+double Alignment::AlignedPair::score(const ScoreMatrix * scoreMatrix,
+                                     bool intronFrameshift) {
+
+    if (intronFrameshift) {
+        return INTRON_FRAMESHIFT;
+    }
     return scoreMatrix->getScore(translatedCodon, protein);
 }
 
