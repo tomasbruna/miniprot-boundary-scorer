@@ -117,11 +117,9 @@ private:
         bool scoreSet;
         char donor[2];
         char acceptor[2];
-        bool complete;
         double leftScore, rightScore;
         /// Flag indicating that a gap, or aligned protein, was detected
         /// inside intron
-        bool gap;
         Exon * leftExon;
         Exon * rightExon;
     };

@@ -198,7 +198,6 @@ void Alignment::assignCodonPhases() {
             state++;
 
             // Deal with out-of-phase alignment starts
-            // TODO: Check whether this even happens.
             if (i == 0) {
                 cerr << "Warning: and an out-of-phase alignment start" <<
                         " in the alignment of " << protein << endl;
@@ -268,37 +267,31 @@ void Alignment::checkForIntron(AlignedPair& pair) {
         // Make the decision about exon phase based on how the preceeding exon
         // was split. Many checks remain from the Spaln parser that contained
         // strange exons, but it's OK to keep them as formatting checks.
-        if (introns.back().start != 0) {
-            if (gapOrAA(pairs[introns.back().start - 1].protein)) {
-                exons.back()->phase = 2;
-            } else if (introns.back().start - 2 < 0) {
-                cerr << "Warning: Unexpected initial exon of length 1" <<
-                        " in the alignment of " << protein << endl;
+        if (gapOrAA(pairs[introns.back().start - 1].protein)) {
+            exons.back()->phase = 2;
+        } else if (introns.back().start - 2 < 0) {
+            cerr << "Warning: Unexpected initial exon of length 1" <<
+                    " in the alignment of " << protein << endl;
+            exons.back()->phase = 1;
+        } else {
+            int position = introns.back().start - 2;
+            if (pairs[position].type != 'e') {
+                // Check if still in exon (if the exon is just 1 nt long).
+                // If not, take last nt from next exon upstream
+                cerr << "Warning: Unexpected exon of length 1" <<
+                    " in the alignment of " << protein << endl;
+                position = introns[introns.size() - 2].start - 1;
+            }
+            if (position >= 0 && gapOrAA(pairs[position].protein)) {
                 exons.back()->phase = 1;
             } else {
-                int position = introns.back().start - 2;
-                if (pairs[position].type != 'e') {
-                    // Check if still in exon (if the exon is just 1 nt long).
-                    // If not, take last nt from next exon upstream
-                    cerr << "Warning: Unexpected exon of length 1" <<
-                        " in the alignment of " << protein << endl;
-                    position = introns[introns.size() - 2].start - 1;
-                }
-                if (position >= 0 && gapOrAA(pairs[position].protein)) {
-                    exons.back()->phase = 1;
-                } else {
-                    exons.back()->phase = 0;
-                }
+                exons.back()->phase = 0;
             }
         }
 
         introns.back().end = index - 1;
         introns.back().acceptor[0] = pairs[index - 2].nucleotide;
         introns.back().acceptor[1] = pairs[index - 1].nucleotide;
-        // TODO: Another unneccessary check to remove
-        if (introns.back().start != 0 && introns.back().gap == false) {
-            introns.back().complete = true;
-        }
         introns.back().rightExon = exons.back();
     }
 }
@@ -349,7 +342,7 @@ void Alignment::scoreHints(int windowWidth,
     scoreStop(windowWidth);
 
     for (unsigned int i = 0; i < introns.size(); i++) {
-        if (introns[i].complete && !introns[i].scoreSet) {
+        if (!introns[i].scoreSet) {
             scoreIntron(introns[i], windowWidth);
         }
     }
@@ -490,7 +483,7 @@ void Alignment::printIntrons(ofstream& ofs, char strand,
                              double minExonScore, double minInitialExonScore,
                              double minInitialIntronScore) {
     for (unsigned int i = 0; i < introns.size(); i++) {
-        if (!introns[i].complete || introns[i].rightExon->score < minExonScore) {
+        if (introns[i].rightExon->score < minExonScore) {
             continue;
         }
 
@@ -537,7 +530,7 @@ void Alignment::printStart(ofstream& ofs, char strand,
 
     // Print start with low exon score if the next intron passes filters
     if (start->exon->score < minExonScore) {
-        if (introns.size() == 0 || !introns[0].complete ||
+        if (introns.size() == 0 ||
             !introns[0].leftExon->initial ||
             introns[0].rightExon->score < minExonScore ||
             introns[0].score < minInitialIntronScore) {
@@ -559,7 +552,7 @@ void Alignment::printStart(ofstream& ofs, char strand,
     ofs << " eNScore=" << start->exon->normalizedScore << ";";
 
     // Only save next intron coordinates if the intron passes filters
-    if (introns.size() != 0 && introns[0].complete &&
+    if (introns.size() != 0 &&
         introns[0].rightExon->score >= minExonScore &&
         introns[0].score >= minInitialIntronScore &&
         introns[0].leftExon->initial) {
@@ -582,7 +575,7 @@ void Alignment::printExons(ofstream& ofs, char strand, double minExonScore,
             // passes filters
             if (exons[i]->score < minInitialExonScore || !exons[i]->initial ||
                 start->score <= 0 || introns.size() == 0 ||
-                !introns[0].leftExon->initial || !introns[0].complete ||
+                !introns[0].leftExon->initial ||
                 introns[0].rightExon->score < minExonScore ||
                 introns[0].score < minInitialIntronScore) {
                 continue;
@@ -690,8 +683,6 @@ double Alignment::AlignedPair::score(const ScoreMatrix * scoreMatrix) {
 
 Alignment::Intron::Intron() {
     scoreSet = false;
-    complete = false;
-    gap = false;
 }
 
 Alignment::Exon::Exon(int start, bool gapStart) {
