@@ -117,8 +117,11 @@ int Alignment::parseHeader(string headerLine) {
     } else {
         dnaStart = atoi(cols[8].c_str());
     }
+    
     // TODO: Load other relevant info.
+    // proteinStart
     realPositionCounter = dnaStart;
+    seqid = cols[5].c_str();
     return READ_SUCCESS;
 }
 
@@ -505,7 +508,7 @@ void Alignment::printIntrons(ofstream& ofs, char strand,
         spliceSites.append("_");
         spliceSites.append(introns[i].acceptor, 2);
 
-        ofs << gene << "\tminiprot_scorer\tIntron\t";
+        ofs << seqid << "\tminiprot_scorer\tIntron\t";
         if (forward) {
             ofs << pairs[introns[i].start].realPosition << "\t";
             ofs << pairs[introns[i].end].realPosition << "\t";
@@ -542,7 +545,7 @@ void Alignment::printStart(ofstream& ofs, char strand,
         }
     }
 
-    ofs << gene << "\tminiprot_scorer\tstart_codon\t";
+    ofs << seqid << "\tminiprot_scorer\tstart_codon\t";
     if (forward) {
         ofs << pairs[start->position].realPosition << "\t";
         ofs << pairs[start->position + 2].realPosition  << "\t";
@@ -585,7 +588,7 @@ void Alignment::printExons(ofstream& ofs, char strand, double minExonScore,
                 continue;
             }
         }
-        ofs << gene << "\tminiprot_scorer\tCDS\t";
+        ofs << seqid << "\tminiprot_scorer\tCDS\t";
         if (forward) {
             if (exons[i]->gapStart) {
                 ofs << pairs[exons[i]->start].realPosition + 1 << "\t";
@@ -611,7 +614,7 @@ void Alignment::printExons(ofstream& ofs, char strand, double minExonScore,
 
 void Alignment::printStop(ofstream& ofs, char strand, double minExonScore) {
     if (stop != NULL && stop->exon->score >= minExonScore) {
-        ofs << gene << "\tminiprot_scorer\tstop_codon\t";
+        ofs << seqid << "\tminiprot_scorer\tstop_codon\t";
         if (forward) {
             ofs << pairs[stop->position].realPosition << "\t";
             ofs << pairs[stop->position + 2].realPosition  << "\t";
@@ -644,8 +647,8 @@ void Alignment::print(ostream& os) {
     os << endl;
 }
 
-string Alignment::getGene() {
-    return gene;
+string Alignment::getSeqid() {
+    return seqid;
 }
 
 string Alignment::getProtein() {

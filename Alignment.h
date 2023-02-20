@@ -9,14 +9,14 @@
 
 using namespace std;
 
-/// Class for parsing a single gene-protein alignment
+/// Class for parsing a single DNA-protein alignment
 
 class Alignment {
 public:
     Alignment();
     ~Alignment();
     /**
-     * Parse a single gene-protein alignment.
+     * Parse a single DNA-protein alignment.
      * The function checks if the general structure of the alignment
      * is OK but it does not check the validity of every single base/protein.
      *
@@ -26,9 +26,9 @@ public:
      */
     int parse(istream & inputStream, string headerLine);
     /**
-     * @return Name of the aligned gene
+     * @return Name of the aligned seqid
      */
-    string getGene();
+    string getSeqid();
     /**
      * @return Name of the aligned protein
      */
@@ -131,7 +131,7 @@ private:
      */
     void clear();
     /**
-     *  Parse gene and protein name from header line
+     *  Parse the alignment header
      */
     int parseHeader(string headerLine);
     /**
@@ -197,7 +197,7 @@ private:
     /// Starting position of the alignment in protein
     int proteinStart;
     int i;
-    string gene;
+    string seqid;
     string protein;
     /// Overall alignment length
     unsigned int blockLength;
