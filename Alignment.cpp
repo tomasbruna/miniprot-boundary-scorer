@@ -238,7 +238,14 @@ void Alignment::checkForIntron(AlignedPair& pair) {
         exons.push_back(new Exon(index));
     }
     if (index == (int) blockLength - 1) {
-        exons.back()->end = index - 3;
+        // Proteins ending with a * in the fasta input.
+        // TODO: To properly test this, create a protein input where
+        // every protein ends with a stop codon
+        if (pairs[index - 5].protein == '*') {
+            exons.back()->end = index - 6;
+        } else {
+            exons.back()->end = index - 3;
+        }
     }
 
     if (donorFlag) {
