@@ -178,11 +178,13 @@ bool Alignment::gapOrNT(char a) {
 void Alignment::assignCodonPhases() {
     int state = 0;
     for (unsigned int i = 0; i < blockLength; i++) {
-        //TODO: What does a "$" sign mean? Probably a frameshift deletion.
-        // Check for any other warnings of this type.
         if (gapOrAA(pairs[i].translatedCodon) != gapOrAA(pairs[i].protein)) {
-            if ((pairs[i].translatedCodon != '*' || pairs[i].protein != '-') &&
-                 i != blockLength - 3) {
+            if (pairs[i].protein == '*') {
+                cerr << "Warning: A stop codon detected inside protein " <<
+                        i + 1 << protein << endl;
+            }
+            else if ((pairs[i].translatedCodon != '*' || pairs[i].protein != '-') &&
+                 i != blockLength - 3 && pairs[i].translatedCodon != '$') {
                 cerr << "Warning: Mismatch at alignment position " << i + 1 <<
                     " in the alignment of " << protein << endl;
             }
