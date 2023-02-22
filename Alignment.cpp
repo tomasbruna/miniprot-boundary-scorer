@@ -160,8 +160,8 @@ void Alignment::parseBlock(const vector<string>& lines) {
     assignCodonPhases();
 }
 
-bool Alignment::gapOrAA(char a) {
-    if ((a >= 'A' && a <= 'Z') || a == '-') {
+bool Alignment::gapStopOrAA(char a) {
+    if ((a >= 'A' && a <= 'Z') || a == '-' || a == '*') {
         return true;
     }
     return false;
@@ -178,13 +178,12 @@ bool Alignment::gapOrNT(char a) {
 void Alignment::assignCodonPhases() {
     int state = 0;
     for (unsigned int i = 0; i < blockLength; i++) {
-        if (gapOrAA(pairs[i].translatedCodon) != gapOrAA(pairs[i].protein)) {
-            if (pairs[i].protein == '*') {
-                cerr << "Warning: A stop codon detected inside protein " <<
-                        i + 1 << protein << endl;
-            }
-            else if ((pairs[i].translatedCodon != '*' || pairs[i].protein != '-') &&
-                 i != blockLength - 3 && pairs[i].translatedCodon != '$') {
+        if (pairs[i].protein == '*') {
+            cerr << "Warning: A stop codon detected inside protein " <<
+                    i + 1 << protein << endl;
+        }
+        if (gapStopOrAA(pairs[i].translatedCodon) != gapStopOrAA(pairs[i].protein)) {
+            if (i != blockLength - 3 && pairs[i].translatedCodon != '$') {
                 cerr << "Warning: Mismatch at alignment position " << i + 1 <<
                     " in the alignment of " << protein << endl;
             }
@@ -194,7 +193,7 @@ void Alignment::assignCodonPhases() {
             continue;
         }
 
-        if (gapOrAA(pairs[i].translatedCodon)) {
+        if (gapStopOrAA(pairs[i].translatedCodon)) {
             state = 1;
         } else {
             state++;
@@ -203,7 +202,7 @@ void Alignment::assignCodonPhases() {
             if (i == 0) {
                 cerr << "Warning: and an out-of-phase alignment start" <<
                         " in the alignment of " << protein << endl;
-                if (gapOrAA(pairs[i + 1].translatedCodon)) {
+                if (gapStopOrAA(pairs[i + 1].translatedCodon)) {
                     state = 3;
                 } else {
                     state = 2;
@@ -276,7 +275,7 @@ void Alignment::checkForIntron(AlignedPair& pair) {
         // Make the decision about exon phase based on how the preceeding exon
         // was split. Many checks remain from the Spaln parser that contained
         // strange exons, but it's OK to keep them as formatting checks.
-        if (gapOrAA(pairs[introns.back().start - 1].protein)) {
+        if (gapStopOrAA(pairs[introns.back().start - 1].protein)) {
             exons.back()->phase = 2;
         } else if (introns.back().start - 2 < 0) {
             cerr << "Warning: Unexpected initial exon of length 1" <<
@@ -291,7 +290,7 @@ void Alignment::checkForIntron(AlignedPair& pair) {
                     " in the alignment of " << protein << endl;
                 position = introns[introns.size() - 2].start - 1;
             }
-            if (position >= 0 && gapOrAA(pairs[position].protein)) {
+            if (position >= 0 && gapStopOrAA(pairs[position].protein)) {
                 exons.back()->phase = 1;
             } else {
                 exons.back()->phase = 0;
@@ -469,7 +468,8 @@ void Alignment::scoreExon(Exon* exon) {
     exon->score = 0;
     int length = 0;
     while (i <= exon->end) {
-        if (gapOrAA(pairs[i].protein)) {
+        // TODO: Penalized frameshifts and readthrough stop codons
+        if (gapStopOrAA(pairs[i].protein)) {
             exon->score += pairs[i].score(scoreMatrix);
             length++;
         }
@@ -690,11 +690,10 @@ protein(p) {
     } else {
         this->type = 'e';
     }
-
     // TODO: Dealing with the stop...
-    if (translatedCodon == '*') {
-        translatedCodon = 'A';
-    }
+    //if (translatedCodon == '*') {
+    //    translatedCodon = 'A';
+    //}
 }
 
 double Alignment::AlignedPair::score(const ScoreMatrix * scoreMatrix,

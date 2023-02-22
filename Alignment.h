@@ -144,9 +144,9 @@ private:
      */
     void parseBlock(const vector<string>& lines);
     /**
-     * Check if the given character is an amino acid or a gap
+     * Check if the given character is an amino acid, stop codon, or gap
      */
-    bool gapOrAA(char a);
+    bool gapStopOrAA(char a);
     /**
      * Check if the given character is a nucleotide or a gap
      */
