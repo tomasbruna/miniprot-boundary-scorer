@@ -424,8 +424,8 @@ void Alignment::scoreRight(Intron & intron, int start, int windowWidth) {
             fs = true;
         }
         if (i % 3 == start % 3) {
-            // Check for end of local alignment
-            if (i >= index || pairs[i].type != 'e') {
+            // Check for end of local alignment.
+            if (i >= exons.back()->end + 1 || pairs[i].type != 'e') {
                 return;
             }
             double weight = kernel->getWeight((i - start) / 3);
