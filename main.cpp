@@ -14,11 +14,13 @@ using namespace std;
 #define DEFAULT_EXON_SCORE 25
 #define DEFAULT_INITIAL_EXON_SCORE 25
 #define DEFAULT_INITIAL_INTRON_SCORE 0
+#define DEFAULT_GAP_PENALTY 4
 #define DEFAULT_INTRON_FRAMESHIFT_PENALTY 4
+#define DEFAULT_EXON_FRAMEHSIFT_STOP_PENALTY 20
 
 void printUsage(char * name) {
     cout << "Usage: " << name << " < input -o output_file -s matrix_file "
-            "[-w integer] [-k kernel] [-e min_exon_score] [-x min_initial_exon_score] [-i min_initial_intron_score] [-f intron_frameshift_penalty]" << endl << endl;
+            "[-w integer] [-k kernel] [-e min_exon_score] [-x min_initial_exon_score] [-i min_initial_intron_score] [-g gap_penalty] [-f intron_frameshift_penalty] [-F exon_frameshift_stop_penalty]" << endl << endl;
     cout << "The program parses the result of miniprot's \"--aln\" output. "
             "The input is read from stdin.\n" << endl << endl;
     cout << "Options:" << endl;
@@ -46,12 +48,18 @@ void printUsage(char * name) {
             "      introns and starts in those exons) are not printed.\n"
             "      Default = " <<
             DEFAULT_INITIAL_INTRON_SCORE << endl;
+    cout << "   -g Penalty for gaps, both in exons and around intron boundaries.\n"
+            "      Default = " <<
+            DEFAULT_GAP_PENALTY << endl;
     cout << "   -f Penalty for frameshifts around intron boundaries. After\n"
             "      a frameshift is detected, the rest of the intron boundary\n"
             "      is scored (still using the weighted score) by this penlalty,\n"
             "      regardless of the actual matches alignment.\n"
             "      Default = " <<
             DEFAULT_INTRON_FRAMESHIFT_PENALTY << endl;
+    cout << "   -F Penalty for frameshifts and read-through stop codons in \n"
+            "      exons. Default = " <<
+            DEFAULT_EXON_FRAMEHSIFT_STOP_PENALTY << endl;
 }
 
 
@@ -64,9 +72,11 @@ int main(int argc, char** argv) {
     double minExonScore = DEFAULT_EXON_SCORE;
     double minInitialIntronScore = DEFAULT_INITIAL_INTRON_SCORE;
     double minInitialExonScore = DEFAULT_INITIAL_EXON_SCORE;
+    double gapPenalty = DEFAULT_GAP_PENALTY;
     double intronFrameshiftPenalty = DEFAULT_INTRON_FRAMESHIFT_PENALTY;
+    double exonFrameshiftStopPenalty = DEFAULT_EXON_FRAMEHSIFT_STOP_PENALTY;
 
-    while ((opt = getopt(argc, argv, "o:w:s:k:e:i:x:f:")) != EOF) {
+    while ((opt = getopt(argc, argv, "o:w:s:k:e:i:x:f:g:F:")) != EOF) {
         switch (opt) {
             case 'o':
                 output = optarg;
@@ -91,6 +101,12 @@ int main(int argc, char** argv) {
                 break;
             case 'f':
                 intronFrameshiftPenalty = atof(optarg);
+                break;
+            case 'F':
+                exonFrameshiftStopPenalty = atof(optarg);
+                break;
+            case 'g':
+                gapPenalty = atof(optarg);
                 break;
             case '?':
                 printUsage(argv[0]);
@@ -120,7 +136,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    if (intronFrameshiftPenalty <= 0) {
+    if (intronFrameshiftPenalty <= 0 || gapPenalty <= 0 ||
+        exonFrameshiftStopPenalty <= 0) {
         cerr << "warning: The penalties are subtracted from the overall score "
                 "and are thus assumed to be positive numbers. Perhaps "
                 "specifying a non-positive penalty was an error?"<< endl;
@@ -132,8 +149,8 @@ int main(int argc, char** argv) {
         printUsage(argv[0]);
         return 1;
     }
-    //TODO: Add an interface for other relevant penalties
-    scoreMatrix->setPenalties(intronFrameshiftPenalty);
+    scoreMatrix->setPenalties(gapPenalty, intronFrameshiftPenalty,
+                              exonFrameshiftStopPenalty);
 
     Kernel * kernel;
     if (kernelType == "triangular") {

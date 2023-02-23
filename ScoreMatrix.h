@@ -21,7 +21,8 @@ public:
     /**
      * Set all relevant alignment penalties
      */
-    void setPenalties(double intronFsPenalty);
+    void setPenalties(double gapPenalty, double intronFsPenalty,
+                      double exonFsStopPenalty);
     /**
      * Return score of a specified amino acid pair
      */
@@ -41,7 +42,10 @@ private:
     void processLine(string & line);
     void computeMaxScore();
     double maxScore;
+    double gapPenalty;
     double intronFsPenalty;
+    double exonFsStopPenalty;
+
 };
 
 #endif /* SCORE_MATRIX_H */

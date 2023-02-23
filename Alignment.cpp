@@ -473,8 +473,14 @@ void Alignment::scoreExon(Exon* exon) {
     exon->score = 0;
     int length = 0;
     while (i <= exon->end) {
-        // TODO: Penalized frameshifts and readthrough stop codons
-        if (gapStopOrAA(pairs[i].protein)) {
+        if (pairs[i].translatedCodon == '!' || pairs[i].translatedCodon == '$') {
+            // A "single" frameshift can be represented by more than one symbol
+            // depending on its phase. Penalize it only once.
+            if (pairs[i - 1].translatedCodon != '!' && pairs[i - 1].translatedCodon != '$') {
+                exon->score += pairs[i].score(scoreMatrix);
+                length++;
+            }
+        } else if (gapStopOrAA(pairs[i].translatedCodon)) {
             exon->score += pairs[i].score(scoreMatrix);
             length++;
         }
@@ -695,10 +701,6 @@ protein(p) {
     } else {
         this->type = 'e';
     }
-    // TODO: Dealing with the stop...
-    //if (translatedCodon == '*') {
-    //    translatedCodon = 'A';
-    //}
 }
 
 double Alignment::AlignedPair::score(const ScoreMatrix * scoreMatrix,

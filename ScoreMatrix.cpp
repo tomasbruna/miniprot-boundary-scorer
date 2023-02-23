@@ -16,12 +16,14 @@ double ScoreMatrix::getScore(char a, char b, bool intronFrameshift) const {
 
     a = tolower(a);
     b = tolower(b);
-    // Treat spaces and dashes as gaps
-    if (a == ' ' || a == '-') {
-        a = '*';
+
+
+    if (a == '$' || b == '$' || a == '!' || b == '!' || a == '*' || b == '*') {
+        return -exonFsStopPenalty;
     }
-    if (b == '-' || b == ' ') {
-        b = '*';
+
+    if (a == '-' || b == '-') {
+        return -gapPenalty;
     }
 
     if (matrix.find(a) != matrix.end()) {
@@ -31,12 +33,8 @@ double ScoreMatrix::getScore(char a, char b, bool intronFrameshift) const {
         }
     }
 
-    // TOOD: Check how miniprot handles this case.
-    // This is caused by frameshifts and occasional shift of how gaps are printed
-    // in alignment (Spaln specific). In any case, penalty -4 is reasonable to penalize
-    // both of these cases -- if it really is a frameshift, the rest of the alignment
-    // also receives -4 penalty. If it is the gap case, the rest of the alignment
-    // after gap is printed correctly.
+    // This should not be occuring anymore as frameshifts are handled
+    // explicitly
     cerr << "Warning: score for (" << a << "," << b << ") is not defined in the "
             "matrix. Returning " << UNKNOWN_SCORE << " instead." << endl;
 
@@ -59,8 +57,11 @@ void ScoreMatrix::computeMaxScore() {
     }
 }
 
-void ScoreMatrix::setPenalties(double intronFsPenalty) {
+void ScoreMatrix::setPenalties(double gapPenalty, double intronFsPenalty,
+                               double exonFsStopPenalty) {
+    this->gapPenalty = gapPenalty;
     this->intronFsPenalty = intronFsPenalty;
+    this->exonFsStopPenalty = exonFsStopPenalty;
 }
 
 
