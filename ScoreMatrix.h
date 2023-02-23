@@ -19,9 +19,13 @@ public:
      */
     bool loadFromFile(string filename);
     /**
+     * Set all relevant alignment penalties
+     */
+    void setPenalties(double intronFsPenalty);
+    /**
      * Return score of a specified amino acid pair
      */
-    double getScore(char a, char b) const;
+    double getScore(char a, char b, bool intronFrameshift = false) const;
     /**
      * Return maximum score of an amino acid pair in the matrix
      */
@@ -37,6 +41,7 @@ private:
     void processLine(string & line);
     void computeMaxScore();
     double maxScore;
+    double intronFsPenalty;
 };
 
 #endif /* SCORE_MATRIX_H */

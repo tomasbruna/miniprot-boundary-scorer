@@ -703,11 +703,7 @@ protein(p) {
 
 double Alignment::AlignedPair::score(const ScoreMatrix * scoreMatrix,
                                      bool intronFrameshift) {
-
-    if (intronFrameshift) {
-        return INTRON_FRAMESHIFT;
-    }
-    return scoreMatrix->getScore(translatedCodon, protein);
+    return scoreMatrix->getScore(translatedCodon, protein, intronFrameshift);
 }
 
 Alignment::Intron::Intron() {

@@ -14,11 +14,12 @@ using namespace std;
 #define DEFAULT_EXON_SCORE 25
 #define DEFAULT_INITIAL_EXON_SCORE 25
 #define DEFAULT_INITIAL_INTRON_SCORE 0
+#define DEFAULT_INTRON_FRAMESHIFT_PENALTY 4
 
 void printUsage(char * name) {
     cout << "Usage: " << name << " < input -o output_file -s matrix_file "
-            "[-w integer] [-k kernel] [-e min_exon_score] [-x min_initial_exon_score] [-i min_initial_intron_score] [-r]" << endl << endl;
-    cout << "The program parses the result of miniprot's \"--aln\" output."
+            "[-w integer] [-k kernel] [-e min_exon_score] [-x min_initial_exon_score] [-i min_initial_intron_score] [-f intron_frameshift_penalty]" << endl << endl;
+    cout << "The program parses the result of miniprot's \"--aln\" output. "
             "The input is read from stdin.\n" << endl << endl;
     cout << "Options:" << endl;
     cout << "   -o Where to save output file" << endl;
@@ -45,7 +46,14 @@ void printUsage(char * name) {
             "      introns and starts in those exons) are not printed.\n"
             "      Default = " <<
             DEFAULT_INITIAL_INTRON_SCORE << endl;
+    cout << "   -f Penalty for frameshifts around intron boundaries. After\n"
+            "      a frameshift is detected, the rest of the intron boundary\n"
+            "      is scored (still using the weighted score) by this penlalty,\n"
+            "      regardless of the actual matches alignment.\n"
+            "      Default = " <<
+            DEFAULT_INTRON_FRAMESHIFT_PENALTY << endl;
 }
+
 
 int main(int argc, char** argv) {
     int opt;
@@ -56,9 +64,9 @@ int main(int argc, char** argv) {
     double minExonScore = DEFAULT_EXON_SCORE;
     double minInitialIntronScore = DEFAULT_INITIAL_INTRON_SCORE;
     double minInitialExonScore = DEFAULT_INITIAL_EXON_SCORE;
-    bool processReverse = false;
+    double intronFrameshiftPenalty = DEFAULT_INTRON_FRAMESHIFT_PENALTY;
 
-    while ((opt = getopt(argc, argv, "o:w:s:k:e:i:x:r")) != EOF) {
+    while ((opt = getopt(argc, argv, "o:w:s:k:e:i:x:f:")) != EOF) {
         switch (opt) {
             case 'o':
                 output = optarg;
@@ -80,6 +88,9 @@ int main(int argc, char** argv) {
                 break;
             case 'x':
                 minInitialExonScore = atof(optarg);
+                break;
+            case 'f':
+                intronFrameshiftPenalty = atof(optarg);
                 break;
             case '?':
                 printUsage(argv[0]);
@@ -109,12 +120,20 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    if (intronFrameshiftPenalty <= 0) {
+        cerr << "warning: The penalties are subtracted from the overall score "
+                "and are thus assumed to be positive numbers. Perhaps "
+                "specifying a non-positive penalty was an error?"<< endl;
+    }
+
     ScoreMatrix * scoreMatrix = new ScoreMatrix();
     if (!scoreMatrix->loadFromFile(matrixFile)) {
         cerr << "error: Could not load scoring matrix" << endl;
         printUsage(argv[0]);
         return 1;
     }
+    //TODO: Add an interface for other relevant penalties
+    scoreMatrix->setPenalties(intronFrameshiftPenalty);
 
     Kernel * kernel;
     if (kernelType == "triangular") {

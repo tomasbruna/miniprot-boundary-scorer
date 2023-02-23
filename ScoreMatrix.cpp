@@ -7,7 +7,12 @@
 
 using namespace std;
 
-double ScoreMatrix::getScore(char a, char b) const {
+double ScoreMatrix::getScore(char a, char b, bool intronFrameshift) const {
+
+    if (intronFrameshift) {
+        // Penalize no matter the input if in the intron frameshift state
+        return -intronFsPenalty;
+    }
 
     a = tolower(a);
     b = tolower(b);
@@ -53,6 +58,11 @@ void ScoreMatrix::computeMaxScore() {
         }
     }
 }
+
+void ScoreMatrix::setPenalties(double intronFsPenalty) {
+    this->intronFsPenalty = intronFsPenalty;
+}
+
 
 bool ScoreMatrix::loadFromFile(string filename) {
     size = 0;

@@ -66,7 +66,6 @@ private:
          * Save pair and determine exon/intron
          */
         AlignedPair(char n, char tc, char p);
-        static const int INTRON_FRAMESHIFT = -4;
         /**
          * Return amino acid score
          *
