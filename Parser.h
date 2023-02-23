@@ -51,10 +51,6 @@ public:
     * Set minimum initial intron score
     */
     void setMinInitialIntronScore(double minInitialIntronScore);
-    /**
-    * Set whether alignments on the reverse strand are processed
-    */
-    void setProcessReverse(bool processReverse);
 
 private:
     /**
@@ -77,7 +73,6 @@ private:
     double minExonScore;
     double minInitialExonScore;
     double minInitialIntronScore;
-    bool processReverse;
 };
 
 

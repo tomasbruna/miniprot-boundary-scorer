@@ -8,7 +8,6 @@ using namespace std;
 Parser::Parser() {
     windowLength = 10;
     scoreMatrix = NULL;
-    processReverse = false;
 }
 
 int Parser::parse(string outputFile) {
@@ -69,9 +68,4 @@ void Parser::setMinInitialExonScore(double minInitialExonScore) {
 
 void Parser::setMinInitialIntronScore(double minInitialIntronScore) {
     this->minInitialIntronScore = minInitialIntronScore;
-}
-
-
-void Parser::setProcessReverse(bool processReverse) {
-    this->processReverse = processReverse;
 }

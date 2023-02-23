@@ -45,9 +45,6 @@ void printUsage(char * name) {
             "      introns and starts in those exons) are not printed.\n"
             "      Default = " <<
             DEFAULT_INITIAL_INTRON_SCORE << endl;
-    cout << "   -r Process alignments on the reverse DNA strand (which are\n"
-            "      ignored by default). This option might not be working properly\n"
-            "      in this version!" << endl;
 }
 
 int main(int argc, char** argv) {
@@ -83,9 +80,6 @@ int main(int argc, char** argv) {
                 break;
             case 'x':
                 minInitialExonScore = atof(optarg);
-                break;
-            case 'r':
-                processReverse = true;
                 break;
             case '?':
                 printUsage(argv[0]);
@@ -146,7 +140,6 @@ int main(int argc, char** argv) {
     fileParser.setMinExonScore(minExonScore);
     fileParser.setMinInitialExonScore(minInitialExonScore);
     fileParser.setMinInitialIntronScore(minInitialIntronScore);
-    fileParser.setProcessReverse(processReverse);
 
     int result = fileParser.parse(output);
 
