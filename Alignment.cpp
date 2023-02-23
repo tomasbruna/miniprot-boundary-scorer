@@ -362,17 +362,22 @@ double Alignment::scoreIntron(Intron& intron, int windowWidth) {
     int left, right;
 
     // Determine if a codon is split and how
-    if (pairs[intron.start - 1].protein == '2' ||
-            pairs[intron.start - 1].translatedCodon == '2') {
+    // A separate check for upstream and downstream boundaries is needed
+    // because of a possibility of rare frameshifts at the intron boundary
+    if (pairs[intron.start - 1].translatedCodon == '2') {
         left = intron.start - 2;
-        right = intron.end + 2;
-    } else if (pairs[intron.start - 1].protein == '3'
-            || pairs[intron.start - 1].translatedCodon == '3') {
+    } else if (pairs[intron.start - 1].translatedCodon == '3') {
         left = intron.start - 3;
-        right = intron.end + 1;
     } else {
         left = intron.start - 1;
+    }
+
+    if (pairs[intron.end + 1].translatedCodon == '2') {
         right = intron.end + 3;
+    } else if (pairs[intron.end + 1].translatedCodon == '3') {
+        right = intron.end + 2;
+    } else {
+        right = intron.end + 1;
     }
 
     scoreLeft(intron, left, windowWidth);
