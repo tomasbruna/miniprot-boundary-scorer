@@ -25,6 +25,7 @@ void Alignment::clear() {
     index = 0;
     insideIntron = false;
     donorFlag = false;
+    alignedProteinLength = 0;
     introns.clear();
     for (unsigned int i = 0; i < exons.size(); i++) {
         delete exons[i];
@@ -109,6 +110,8 @@ int Alignment::parseHeader(string headerLine) {
     }
 
     protein = cols[0];
+    proteinLength = atoi(cols[1].c_str());
+    proteinStart = atoi(cols[2].c_str()) + 1;
     forward = false;
     // miniprot is using bed-style coordinates
     if (cols[4] == "+") {
@@ -117,9 +120,6 @@ int Alignment::parseHeader(string headerLine) {
     } else {
         dnaStart = atoi(cols[8].c_str());
     }
-    
-    // TODO: Load other relevant info.
-    // proteinStart
     realPositionCounter = dnaStart;
     seqid = cols[5].c_str();
     return READ_SUCCESS;
@@ -147,6 +147,10 @@ void Alignment::parseBlock(const vector<string>& lines) {
             } else {
                 pair.realPosition = realPositionCounter + 1;
             }
+        }
+
+        if (lines[3][i] >= 'A' && lines[3][i] <= 'Z') {
+            alignedProteinLength++;
         }
 
         // Reuse space if possible, just memory mgmt
@@ -322,15 +326,8 @@ void Alignment::checkForStart(AlignedPair& pair) {
 }
 
 void Alignment::checkForStop(AlignedPair& pair) {
-    if (index == (int) blockLength - 1 && pairs[index - 3].type == 'e' &&
-            (pair.nucleotide == 'a' || pair.nucleotide == 'g')) {
-        string codon = "";
-        codon += pair.nucleotide;
-        for (int i = 1; i < 3; i++) {
-            codon = pairs[index - i].nucleotide + codon;
-        }
-
-        if (codon == "taa" || codon == "tag" || codon == "tga") {
+    if (index == (int) blockLength - 1) {
+        if (pairs[index - 2].translatedCodon == '*') {
             stop = new Codon(index - 2, exons.back());
         }
     }
@@ -648,7 +645,13 @@ void Alignment::printStop(ofstream& ofs, char strand, double minExonScore) {
         }
         ofs << ".\t" << strand << "\t0\tprot=" << protein << ";";
         ofs << " al_score=" << stop->score << ";";
-        ofs << " eScore=" << stop->exon->score << ";\n";
+        ofs << " eScore=" << stop->exon->score << ";";
+
+        bool proteinEnd = false;
+        if (alignedProteinLength + proteinStart - 1 == proteinLength) {
+            proteinEnd = true;
+        }
+        ofs << " proteinEnd=" << proteinEnd << ";\n";
     }
 }
 

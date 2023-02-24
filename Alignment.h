@@ -200,6 +200,8 @@ private:
     int dnaStart;
     /// Starting position of the alignment in protein
     int proteinStart;
+    int proteinLength;
+    int alignedProteinLength;
     int i;
     string seqid;
     string protein;
