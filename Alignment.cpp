@@ -317,7 +317,7 @@ void Alignment::checkForStart(AlignedPair& pair) {
         }
         if (codon == "ATG") {
             // Check if protein alignment starts with its first M
-            if (proteinStart == 1 && pairs[index - 1].protein == 'M') {
+            if (proteinStart == 1 && pairs[index - 2].protein == 'M') {
                 start = new Codon(index - 2, exons.back());
                 exons.back()->initial = true;
             }
