@@ -124,6 +124,8 @@ private:
         char donor[2];
         char acceptor[2];
         double leftScore, rightScore;
+        double printedLength;
+        double realLength;
         /// Flag indicating that a gap, or aligned protein, was detected
         /// inside intron
         Exon * leftExon;
@@ -138,6 +140,10 @@ private:
      *  Parse the alignment header
      */
     int parseHeader(string headerLine);
+    /**
+     *  Check for the intron compact notation and parse it
+     */
+    bool checkForCompactNotation(char a);
     /**
      *  Parse individual block of lines containing the alignment and its properties
      */
@@ -219,6 +225,8 @@ private:
     vector<AlignedPair> pairs;
     // Whether the parser is inside intron state
     bool insideIntron;
+    bool  compactState;
+    string compactLength;
     /// Flag indicating that donor position of an intron is being read
     bool donorFlag;
     vector<Intron> introns;

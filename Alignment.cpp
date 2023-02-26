@@ -40,6 +40,8 @@ void Alignment::clear() {
         delete stop;
     }
     stop = NULL;
+    compactState = false;
+    compactLength = "";
 }
 
 int Alignment::parse(istream& inputStream, string headerLine) {
@@ -125,9 +127,44 @@ int Alignment::parseHeader(string headerLine) {
     return READ_SUCCESS;
 }
 
+bool Alignment::checkForCompactNotation(char a) {
+    if (a == '~') {
+        if (!insideIntron) {
+            cerr << "Warning: Unexpected character \"~\" outside of " <<
+                    "an intron in the alignment of " << protein << endl;
+        }
+        if (compactState) {
+            if (introns.back().realLength != -1) {
+                cerr << "Warning: Unexpected compact intron length " <<
+                        "representation in the alignment of " << protein << endl;
+            }
+            introns.back().realLength = atoi(compactLength.c_str());
+            compactLength = "";
+            compactState = false;
+        } else {
+            compactState = true;
+        }
+        return true;
+    }
+    if (compactState) {
+        if (a < '0' || a > '9') {
+            cerr << "Warning: A number expected after \"~\" " <<
+                    "in the alignment of " << protein << endl;
+        }
+        compactLength += a;
+        return true;
+    }
+    return false;
+}
+
 void Alignment::parseBlock(const vector<string>& lines) {
     // Parse individual pairs
     for (unsigned i = 0; i < lines[0].size(); i++) {
+
+        if (checkForCompactNotation(lines[0][i])) {
+            continue;
+        }
+
         AlignedPair pair(lines[0][i], lines[1][i], lines[3][i]);
 
         checkForIntron(pair);
@@ -305,6 +342,21 @@ void Alignment::checkForIntron(AlignedPair& pair) {
         introns.back().acceptor[0] = pairs[index - 2].nucleotide;
         introns.back().acceptor[1] = pairs[index - 1].nucleotide;
         introns.back().rightExon = exons.back();
+
+        // Add the length stored in the compact notation
+        if (introns.back().realLength != -1) {
+            int compactOffset = introns.back().realLength -
+                                (introns.back().end - introns.back().start + 1);
+            if (forward) {
+                realPositionCounter += compactOffset;
+                // This is kind of hacky, but only the boundary coordinate
+                // needs to be correct.
+                pairs[index - 1].realPosition = realPositionCounter - 1;
+            } else {
+               realPositionCounter -= compactOffset;
+               pairs[index - 1].realPosition = realPositionCounter + 1;
+            }
+        }
     }
 }
 
@@ -706,9 +758,7 @@ translatedCodon(tc),
 protein(p) {
 
     if (!gapOrNT(n)) {
-        cerr << "Warning: Unexpected nucleotide \"" << n << "\". " <<
-                "This is probably miniprot's compact notation for long "
-                "introns. Not supported yet by this parser." << endl;
+        cerr << "Warning: Unexpected nucleotide \"" << n << "\". " << endl;
     }
 
     if (n == '-') {
@@ -727,6 +777,8 @@ double Alignment::AlignedPair::score(const ScoreMatrix * scoreMatrix,
 
 Alignment::Intron::Intron() {
     scoreSet = false;
+    printedLength = 0;
+    realLength = -1;
 }
 
 Alignment::Exon::Exon(int start, bool gapStart) {
