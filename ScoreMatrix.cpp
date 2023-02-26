@@ -7,11 +7,11 @@
 
 using namespace std;
 
-double ScoreMatrix::getScore(char a, char b, bool intronFrameshift) const {
+double ScoreMatrix::getScore(char a, char b, bool boundaryFrameshift) const {
 
-    if (intronFrameshift) {
+    if (boundaryFrameshift) {
         // Penalize no matter the input if in the intron frameshift state
-        return -intronFsPenalty;
+        return -boundaryFsPenalty;
     }
 
     a = tolower(a);
@@ -57,10 +57,10 @@ void ScoreMatrix::computeMaxScore() {
     }
 }
 
-void ScoreMatrix::setPenalties(double gapPenalty, double intronFsPenalty,
+void ScoreMatrix::setPenalties(double gapPenalty, double boundaryFsPenalty,
                                double exonFsStopPenalty) {
     this->gapPenalty = gapPenalty;
-    this->intronFsPenalty = intronFsPenalty;
+    this->boundaryFsPenalty = boundaryFsPenalty;
     this->exonFsStopPenalty = exonFsStopPenalty;
 }
 

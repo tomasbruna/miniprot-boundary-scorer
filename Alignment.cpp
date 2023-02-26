@@ -436,13 +436,20 @@ void Alignment::scoreStart(int windowWidth) {
         return;
     }
     start->score = 0;
-    for (int i = start->position + 1; i < (start->position + 1 + windowWidth * 3); i += 3) {
-        // Check for end of local alignment
-        if (i >= index || pairs[i].type != 'e') {
-            break;
+    bool fs = false;
+    for (int i = start->position; i < (start->position + windowWidth * 3); i += 1) {
+        if (pairs[i].translatedCodon == '$' ||
+            pairs[i].translatedCodon == '!') {
+            fs = true;
         }
-        double weight = kernel->getWeight((i - start->position - 1) / 3);
-        start->score += pairs[i].score(scoreMatrix) * weight;
+        if (i % 3 == start->position % 3) {
+            // Check for end of local alignment
+            if (i >= exons.back()->end + 1  || pairs[i].type != 'e') {
+                break;
+            }
+            double weight = kernel->getWeight((i - start->position) / 3);
+            start->score += pairs[i].score(scoreMatrix, fs) * weight;
+        }
     }
     start->score /=  kernel->weightSum();
     start->score /= scoreMatrix->getMaxScore();
@@ -453,13 +460,19 @@ void Alignment::scoreStop(int windowWidth) {
         return;
     }
     stop->score = 0;
-    for (int i = stop->position - 2; i > (stop->position - 2 - windowWidth * 3); i -= 3) {
-        // Check for end of local alignment
-        if (i < 0 || pairs[i].type != 'e') {
-            break;
+    bool fs = false;
+    for (int i = stop->position - 3; i > (stop->position - 3 - windowWidth * 3); i -= 1) {
+        if (pairs[i].translatedCodon == '$' ||
+            pairs[i].translatedCodon == '!') {
+            fs = true;
         }
-        double weight = kernel->getWeight((i - stop->position + 2) / 3);
-        stop->score += pairs[i].score(scoreMatrix) * weight;
+        if (i % 3 == (stop->position - 3) % 3) {
+            if (i < 0 || pairs[i].type != 'e') {
+                break;
+            }
+            double weight = kernel->getWeight((i - stop->position + 3) / 3);
+            stop->score += pairs[i].score(scoreMatrix, fs) * weight;
+        }
     }
     stop->score /=  kernel->weightSum();
     stop->score /= scoreMatrix->getMaxScore();

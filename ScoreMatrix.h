@@ -21,12 +21,12 @@ public:
     /**
      * Set all relevant alignment penalties
      */
-    void setPenalties(double gapPenalty, double intronFsPenalty,
+    void setPenalties(double gapPenalty, double boundaryFsPenalty,
                       double exonFsStopPenalty);
     /**
      * Return score of a specified amino acid pair
      */
-    double getScore(char a, char b, bool intronFrameshift = false) const;
+    double getScore(char a, char b, bool boundaryFrameshift = false) const;
     /**
      * Return maximum score of an amino acid pair in the matrix
      */
@@ -43,7 +43,7 @@ private:
     void computeMaxScore();
     double maxScore;
     double gapPenalty;
-    double intronFsPenalty;
+    double boundaryFsPenalty;
     double exonFsStopPenalty;
 
 };
