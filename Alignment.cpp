@@ -76,6 +76,7 @@ int Alignment::parse(istream& inputStream, string headerLine) {
                     break;
             }
             blockLines[i] = blockLines[i].substr(BLOCK_OFFSET);
+            blockLines[i] += "<";
         } else {
             blockHeaderErr = true;
         }
@@ -219,12 +220,18 @@ bool Alignment::gapOrNT(char a) {
 void Alignment::assignCodonPhases() {
     int state = 0;
     for (unsigned int i = 0; i < blockLength; i++) {
+        if (pairs[i].nucleotide == '<') {
+            return;
+        }
+
         if (pairs[i].protein == '*') {
             cerr << "Warning: A stop codon detected inside protein " <<
                     i + 1 << protein << endl;
         }
         if (gapStopOrAA(pairs[i].translatedCodon) != gapStopOrAA(pairs[i].protein)) {
-            if (i != blockLength - 3 && pairs[i].translatedCodon != '$') {
+            if (i + 3 < blockLength && pairs[i + 3].nucleotide == '<') {
+                // End of alignment
+            } else if (pairs[i].translatedCodon != '$') {
                 cerr << "Warning: Mismatch at alignment position " << i + 1 <<
                     " in the alignment of " << protein << endl;
             }
@@ -267,7 +274,7 @@ void Alignment::checkForIntron(AlignedPair& pair) {
     }
 
     // Deal with the alignemnt start and end - a special case of intron boundary
-    if (alignmentPosition == 1 || index == (int) blockLength - 1) {
+    if (alignmentPosition == 1 || pair.nucleotide == '<') {
         if (pair.type != 'e' || pair.nucleotide == '-') {
             cerr << "Warning: Unexpected alignment start/end" <<
                     " in the alignment of " << protein << endl;
@@ -277,14 +284,14 @@ void Alignment::checkForIntron(AlignedPair& pair) {
     if (alignmentPosition == 1) {
         exons.push_back(new Exon(index));
     }
-    if (index == (int) blockLength - 1) {
+    if (pair.nucleotide == '<') {
         // Proteins ending with a * in the fasta input.
         // TODO: To properly test this, create a protein input where
         // every protein ends with a stop codon
-        if (pairs[index - 5].protein == '*') {
-            exons.back()->end = index - 6;
+        if (pairs[index - 6].protein == '*') {
+            exons.back()->end = index - 7;
         } else {
-            exons.back()->end = index - 3;
+            exons.back()->end = index - 4;
         }
     }
 
@@ -378,9 +385,9 @@ void Alignment::checkForStart(AlignedPair& pair) {
 }
 
 void Alignment::checkForStop(AlignedPair& pair) {
-    if (index == (int) blockLength - 1) {
-        if (pairs[index - 2].translatedCodon == '*') {
-            stop = new Codon(index - 2, exons.back());
+    if (pair.nucleotide == '<') {
+        if (pairs[index - 3].translatedCodon == '*') {
+            stop = new Codon(index - 3, exons.back());
         }
     }
 }
@@ -724,18 +731,30 @@ void Alignment::printStop(ofstream& ofs, char strand, double minExonScore) {
 void Alignment::print(ostream& os) {
     for (unsigned int i = 0; i < blockLength; i++) {
         os << pairs[i].nucleotide;
+        if (pairs[i].nucleotide == '<') {
+            break;
+        }
     }
     os << endl;
     for (unsigned int i = 0; i < blockLength; i++) {
         os << pairs[i].translatedCodon;
+        if (pairs[i].translatedCodon == '<') {
+            break;
+        }
     }
     os << endl;
     for (unsigned int i = 0; i < blockLength; i++) {
         os << pairs[i].type;
+        if (pairs[i].nucleotide == '<') {
+            break;
+        }
     }
     os << endl;
     for (unsigned int i = 0; i < blockLength; i++) {
         os << pairs[i].protein;
+        if (pairs[i].protein == '<') {
+            break;
+        }
     }
     os << endl;
 }
@@ -756,6 +775,12 @@ Alignment::AlignedPair::AlignedPair(char n, char tc, char p) :
 nucleotide(n),
 translatedCodon(tc),
 protein(p) {
+
+    if (n == '<') {
+        // Alignment end
+        this->type = 'e';
+        return;
+    }
 
     if (!gapOrNT(n)) {
         cerr << "Warning: Unexpected nucleotide \"" << n << "\". " << endl;
