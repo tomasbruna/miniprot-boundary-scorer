@@ -398,15 +398,15 @@ double Alignment::scoreIntron(Intron& intron, int windowWidth) {
 void Alignment::scoreLeft(Intron & intron, int start, int windowWidth) {
     bool fs = false;
     for (int i = start; i > (start - windowWidth * 3); i -= 1) {
+        // Check for end of local alignment
+        if (i < 0 || pairs[i].type != 'e') {
+            return;
+        }
         if (pairs[i].translatedCodon == '$' ||
             pairs[i].translatedCodon == '!') {
             fs = true;
         }
         if (i % 3 == start % 3) {
-            // Check for end of local alignment
-            if (i < 0 || pairs[i].type != 'e') {
-                return;
-            }
             double weight = kernel->getWeight((i - start) / 3);
             intron.leftScore += pairs[i].score(scoreMatrix, fs) * weight;
         }
@@ -416,15 +416,15 @@ void Alignment::scoreLeft(Intron & intron, int start, int windowWidth) {
 void Alignment::scoreRight(Intron & intron, int start, int windowWidth) {
     bool fs = false;
     for (int i = start; i < (start + windowWidth * 3); i += 1) {
+        // Check for end of local alignment.
+        if (i >= exons.back()->end + 1 || pairs[i].type != 'e') {
+            return;
+        }
         if (pairs[i].translatedCodon == '$' ||
             pairs[i].translatedCodon == '!') {
             fs = true;
         }
         if (i % 3 == start % 3) {
-            // Check for end of local alignment.
-            if (i >= exons.back()->end + 1 || pairs[i].type != 'e') {
-                return;
-            }
             double weight = kernel->getWeight((i - start) / 3);
             intron.rightScore += pairs[i].score(scoreMatrix, fs) * weight;
         }
@@ -438,15 +438,15 @@ void Alignment::scoreStart(int windowWidth) {
     start->score = 0;
     bool fs = false;
     for (int i = start->position; i < (start->position + windowWidth * 3); i += 1) {
+        // Check for end of local alignment
+        if (i >= exons.back()->end + 1  || pairs[i].type != 'e') {
+            break;
+        }
         if (pairs[i].translatedCodon == '$' ||
             pairs[i].translatedCodon == '!') {
             fs = true;
         }
         if (i % 3 == start->position % 3) {
-            // Check for end of local alignment
-            if (i >= exons.back()->end + 1  || pairs[i].type != 'e') {
-                break;
-            }
             double weight = kernel->getWeight((i - start->position) / 3);
             start->score += pairs[i].score(scoreMatrix, fs) * weight;
         }
@@ -462,14 +462,15 @@ void Alignment::scoreStop(int windowWidth) {
     stop->score = 0;
     bool fs = false;
     for (int i = stop->position - 3; i > (stop->position - 3 - windowWidth * 3); i -= 1) {
+        // Check for end of local alignment.
+        if (i < 0 || pairs[i].type != 'e') {
+            break;
+        }
         if (pairs[i].translatedCodon == '$' ||
             pairs[i].translatedCodon == '!') {
             fs = true;
         }
         if (i % 3 == (stop->position - 3) % 3) {
-            if (i < 0 || pairs[i].type != 'e') {
-                break;
-            }
             double weight = kernel->getWeight((i - stop->position + 3) / 3);
             stop->score += pairs[i].score(scoreMatrix, fs) * weight;
         }
