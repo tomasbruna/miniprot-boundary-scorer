@@ -153,13 +153,13 @@ private:
      */
     bool gapStopOrAA(char a);
     /**
+     * Check if the given character represents frameshift
+     */
+    bool frameshift(char a);
+    /**
      * Check if the given character is a nucleotide or a gap
      */
     static bool gapOrNT(char a);
-    /**
-     * Assign phases to all positions
-     */
-    void assignCodonPhases();
     /**
      * Detect and save introns.
      * The function also retrieves information associated with the intron

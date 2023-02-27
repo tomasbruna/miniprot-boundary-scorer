@@ -168,6 +168,16 @@ void Alignment::parseBlock(const vector<string>& lines) {
 
         AlignedPair pair(lines[0][i], lines[1][i], lines[3][i]);
 
+        // Format checks
+        if (gapStopOrAA(pair.translatedCodon) != gapStopOrAA(pair.protein)) {
+            if (i + 3 < blockLength && lines[1][i + 3] == '<') {
+                // Alignment end
+            } else if (!frameshift(pair.translatedCodon)) {
+                cerr << "Warning: Mismatch at alignment position " << i + 1 <<
+                    " in the alignment of " << protein << endl;
+            }
+        }
+
         checkForIntron(pair);
         checkForStart(pair);
         checkForStop(pair);
@@ -199,11 +209,17 @@ void Alignment::parseBlock(const vector<string>& lines) {
         }
         index++;
     }
-    assignCodonPhases();
 }
 
 bool Alignment::gapStopOrAA(char a) {
     if ((a >= 'A' && a <= 'Z') || a == '-' || a == '*') {
+        return true;
+    }
+    return false;
+}
+
+bool Alignment::frameshift(char a) {
+    if (a == '$' || a == '!') {
         return true;
     }
     return false;
@@ -215,54 +231,6 @@ bool Alignment::gapOrNT(char a) {
         return true;
     }
     return false;
-}
-
-void Alignment::assignCodonPhases() {
-    int state = 0;
-    for (unsigned int i = 0; i < blockLength; i++) {
-        if (pairs[i].nucleotide == '<') {
-            return;
-        }
-
-        if (pairs[i].protein == '*') {
-            cerr << "Warning: A stop codon detected inside protein " <<
-                    i + 1 << protein << endl;
-        }
-        if (gapStopOrAA(pairs[i].translatedCodon) != gapStopOrAA(pairs[i].protein)) {
-            if (i + 3 < blockLength && pairs[i + 3].nucleotide == '<') {
-                // End of alignment
-            } else if (pairs[i].translatedCodon != '$') {
-                cerr << "Warning: Mismatch at alignment position " << i + 1 <<
-                    " in the alignment of " << protein << endl;
-            }
-        }
-
-        if (pairs[i].type != 'e') {
-            continue;
-        }
-
-        if (gapStopOrAA(pairs[i].translatedCodon)) {
-            state = 1;
-        } else {
-            state++;
-
-            // Deal with out-of-phase alignment starts
-            if (i == 0) {
-                cerr << "Warning: and an out-of-phase alignment start" <<
-                        " in the alignment of " << protein << endl;
-                if (gapStopOrAA(pairs[i + 1].translatedCodon)) {
-                    state = 3;
-                } else {
-                    state = 2;
-                }
-            }
-
-            if (pairs[i].translatedCodon == '.'){
-                pairs[i].translatedCodon = to_string(state).c_str()[0];
-                pairs[i].protein = to_string(state).c_str()[0];
-            }
-        }
-    }
 }
 
 void Alignment::checkForIntron(AlignedPair& pair) {
@@ -390,6 +358,10 @@ void Alignment::checkForStop(AlignedPair& pair) {
             stop = new Codon(index - 3, exons.back());
         }
     }
+    if (pair.protein == '*') {
+        cerr << "Warning: A stop codon detected inside protein " <<
+                protein << " at al. position " << index << endl;
+    }
 }
 
 void Alignment::scoreHints(int windowWidth,
@@ -420,20 +392,26 @@ double Alignment::scoreIntron(Intron& intron, int windowWidth) {
     // Determine if a codon is split and how
     // A separate check for upstream and downstream boundaries is needed
     // because of a possibility of rare frameshifts at the intron boundary
-    if (pairs[intron.start - 1].translatedCodon == '2') {
-        left = intron.start - 2;
-    } else if (pairs[intron.start - 1].translatedCodon == '3') {
-        left = intron.start - 3;
-    } else {
+
+    // is Frameshift function
+    char c1 = pairs[intron.start - 1].translatedCodon;
+    char c2 = pairs[intron.start - 2].translatedCodon;
+    if (gapStopOrAA(c1) || frameshift(c1)) {
         left = intron.start - 1;
+    } else if (gapStopOrAA(c2) || frameshift(c2)) {
+        left = intron.start - 2;
+    } else {
+        left = intron.start - 3;
     }
 
-    if (pairs[intron.end + 1].translatedCodon == '2') {
-        right = intron.end + 3;
-    } else if (pairs[intron.end + 1].translatedCodon == '3') {
+    c1 = pairs[intron.end + 1].translatedCodon;
+    c2 = pairs[intron.end + 2].translatedCodon;
+    if (gapStopOrAA(c1) || frameshift(c1)) {
+        right = intron.end + 1;
+    } else if (gapStopOrAA(c2) || frameshift(c2)) {
         right = intron.end + 2;
     } else {
-        right = intron.end + 1;
+        right = intron.end + 3;
     }
 
     scoreLeft(intron, left, windowWidth);
@@ -461,8 +439,7 @@ void Alignment::scoreLeft(Intron & intron, int start, int windowWidth) {
         if (i < 0 || pairs[i].type != 'e') {
             return;
         }
-        if (pairs[i].translatedCodon == '$' ||
-            pairs[i].translatedCodon == '!') {
+        if (frameshift(pairs[i].translatedCodon)) {
             fs = true;
         }
         if (i % 3 == start % 3) {
@@ -479,8 +456,7 @@ void Alignment::scoreRight(Intron & intron, int start, int windowWidth) {
         if (i >= exons.back()->end + 1 || pairs[i].type != 'e') {
             return;
         }
-        if (pairs[i].translatedCodon == '$' ||
-            pairs[i].translatedCodon == '!') {
+        if (frameshift(pairs[i].translatedCodon)) {
             fs = true;
         }
         if (i % 3 == start % 3) {
@@ -501,8 +477,7 @@ void Alignment::scoreStart(int windowWidth) {
         if (i >= exons.back()->end + 1  || pairs[i].type != 'e') {
             break;
         }
-        if (pairs[i].translatedCodon == '$' ||
-            pairs[i].translatedCodon == '!') {
+        if (frameshift(pairs[i].translatedCodon)) {
             fs = true;
         }
         if (i % 3 == start->position % 3) {
@@ -525,8 +500,7 @@ void Alignment::scoreStop(int windowWidth) {
         if (i < 0 || pairs[i].type != 'e') {
             break;
         }
-        if (pairs[i].translatedCodon == '$' ||
-            pairs[i].translatedCodon == '!') {
+        if (frameshift(pairs[i].translatedCodon)) {
             fs = true;
         }
         if (i % 3 == (stop->position - 3) % 3) {
