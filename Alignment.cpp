@@ -576,7 +576,7 @@ void Alignment::printIntrons(ofstream& ofs, char strand,
         spliceSites.append("_");
         spliceSites.append(introns[i].acceptor, 2);
 
-        ofs << seqid << "\tminiprot_scorer\tIntron\t";
+        ofs << seqid << "\tminiprot_scorer\tintron\t";
         if (forward) {
             ofs << pairs[introns[i].start].realPosition << "\t";
             ofs << pairs[introns[i].end].realPosition << "\t";
