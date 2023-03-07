@@ -1,7 +1,6 @@
 #define CATCH_CONFIG_RUNNER  // This tells Catch to provide a main() - only do this in one cpp file
 #include "common.h"
 #include "catch.hpp"
-//#include "catch_amalgamated.hpp"
 
 std::string ROOT_PATH;
 

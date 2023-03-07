@@ -1,6 +1,5 @@
 #include "common.h"
 #include "catch.hpp"
-//#include "catch_amalgamated.hpp"
 #include "../ScoreMatrix.h"
 #include <iostream>
 
@@ -17,12 +16,15 @@ TEST_CASE("Test loading of same matrices from csv "
 
     ScoreMatrix s1;
     s1.loadFromFile(inputFile1);
+    s1.setPenalties(4, 4, 20);
 
     ScoreMatrix s2;
     s2.loadFromFile(inputFile2);
+    s2.setPenalties(4, 4, 20);
 
     ScoreMatrix s3;
     s3.loadFromFile(inputFile3);
+    s3.setPenalties(4, 4, 20);
 
     for (unsigned int i = 0; i < aminoAcids.size(); i++) {
         for (unsigned int j = 0; j < aminoAcids.size(); j++) {
@@ -45,15 +47,17 @@ TEST_CASE("Check random values") {
     string inputFile1 = ROOT_PATH + "/test_files/blosum62_1.csv";
     ScoreMatrix s;
     s.loadFromFile(inputFile1);
+    s.setPenalties(4, 4, 20);
+
     CHECK (s.getScore('A', 'A') == 4);
     CHECK (s.getScore('S', 'W') == -3);
-    CHECK (s.getScore('*', '*') == 1);
+    CHECK (s.getScore('*', '*') == -20);
     CHECK (s.getScore('X', 'T') == 0);
     CHECK (s.getScore('P', 'I') == -3);
     CHECK (s.getScore('.','A')  == -4);
     CHECK (s.getScore('A','.')  == -4);
     CHECK (s.getScore(' ','A')  == -4);
-    CHECK (s.getScore('-',' ')  == 1);
+    CHECK (s.getScore('-',' ')  == -4);
 }
 
 TEST_CASE("Check max value for AA") {

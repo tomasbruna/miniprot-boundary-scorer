@@ -1,15 +1,9 @@
-
-
 #include "common.h"
 #include "catch.hpp"
-//#include "catch_amalgamated.hpp"
 #include "../Parser.h"
 #include <stdio.h>
 #include <string>
 #include <iostream>
-
-// system(diff) in this testing case is system dependent
-// this is ok for testing purposes
 
 int returnDiff(string expected, string result) {
     expected = ROOT_PATH + "/test_files/" + expected;
@@ -19,12 +13,13 @@ int returnDiff(string expected, string result) {
 TEST_CASE("Test whole program with different settings") {
     Parser fileParser;
     fileParser.setWindowLegth(10);
-    system(("gunzip -k " + ROOT_PATH + "/test_files/test_1.ali.gz").c_str());
+    system(("gunzip -k " + ROOT_PATH + "/test_files/test_1.aln.gz").c_str());
 
-    string inputFile = ROOT_PATH + "/test_files/test_1.ali";
+    string inputFile = ROOT_PATH + "/test_files/test_1.aln";
     string output = ROOT_PATH + "/test_files/test_result";
     ScoreMatrix * scoreMatrix = new ScoreMatrix();
     scoreMatrix->loadFromFile(ROOT_PATH + "/test_files/blosum62_1.csv");
+    scoreMatrix->setPenalties(4, 4, 20);
     Kernel * triangularkernel = new TriangularKernel();
     fileParser.setScoringMatrix(scoreMatrix);
     fileParser.setKernel(triangularkernel);
@@ -35,24 +30,24 @@ TEST_CASE("Test whole program with different settings") {
         fileParser.setMinInitialExonScore(-999999);
         fileParser.setMinInitialIntronScore(-999999);
         fileParser.parse(output);
-        int result = returnDiff("test_parser.gff", output);
+        int result = returnDiff("test_parser_all.gff", output);
         CHECK(result == 0);
     }
 
     std::cin.clear();
 
-   // SECTION("Standard filters") {
-     //   freopen(inputFile.c_str(), "r", stdin);
-      //  fileParser.setMinExonScore(25);
-      //  fileParser.setMinInitialIntronScore(0.1);
-     //   fileParser.setMinInitialExonScore(0);
-     //   fileParser.parse(output);
-     //   int result = returnDiff("test_parser_eScore_25.gff", output);
-     //   CHECK(result == 0);
-   // }
+    SECTION("Standard filters") {
+       freopen(inputFile.c_str(), "r", stdin);
+       fileParser.setMinExonScore(25);
+       fileParser.setMinInitialIntronScore(0);
+       fileParser.setMinInitialExonScore(25);
+       fileParser.parse(output);
+       int result = returnDiff("test_parser.gff", output);
+       CHECK(result == 0);
+    }
 
     delete scoreMatrix;
     delete triangularkernel;
-    //remove(output.c_str());
-    remove((ROOT_PATH + "/test_files/test_1.ali").c_str());
+    remove(output.c_str());
+    remove((ROOT_PATH + "/test_files/test_1.aln").c_str());
 }
