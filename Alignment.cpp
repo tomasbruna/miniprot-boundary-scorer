@@ -107,8 +107,9 @@ int Alignment::parseHeader(string headerLine) {
     while(getline(iss, col, '\t')) {
          cols.push_back(col);
     }
-    if (cols.size() != 19) {
-        cerr << "error: Unexpected number of columns in the header " << endl;
+    if (cols.size() < 12) {
+        cerr << "error: Unexpected number of columns in the header. PAF "
+             << "header should contain at least 12 fields" << endl;
         return FORMAT_FAIL;
     }
 
