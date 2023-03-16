@@ -26,6 +26,10 @@ void Alignment::clear() {
     insideIntron = false;
     donorFlag = false;
     alignedProteinLength = 0;
+    AS = 0;
+    ms = 0;
+    positiveMatches = 0;
+    exactMatches = 0;
     introns.clear();
     for (unsigned int i = 0; i < exons.size(); i++) {
         delete exons[i];
@@ -99,6 +103,16 @@ int Alignment::parse(istream& inputStream, string headerLine) {
     return READ_SUCCESS;
 }
 
+string Alignment::getHeaderAttribute(const vector<string>& cols, string attribute) {
+    for (i=0; i < cols.size(); i++) {
+        if (cols[i].substr(0, attribute.size()) == attribute) {
+            return cols[i].substr(attribute.size() + 1);
+        }
+    }
+    cerr << "warning: attribute " << attribute << " was not found in the "
+         << "header. Returning 0 instead" << endl;
+    return "0";
+}
 
 int Alignment::parseHeader(string headerLine) {
     vector<string> cols;
@@ -116,6 +130,7 @@ int Alignment::parseHeader(string headerLine) {
     protein = cols[0];
     proteinLength = atoi(cols[1].c_str());
     proteinStart = atoi(cols[2].c_str()) + 1;
+
     forward = false;
     // miniprot is using bed-style coordinates
     if (cols[4] == "+") {
@@ -126,6 +141,8 @@ int Alignment::parseHeader(string headerLine) {
     }
     realPositionCounter = dnaStart;
     seqid = cols[5].c_str();
+    AS = atoi(getHeaderAttribute(cols, "AS:i").c_str());
+    ms = atoi(getHeaderAttribute(cols, "ms:i").c_str());
     return READ_SUCCESS;
 }
 

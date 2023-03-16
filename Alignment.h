@@ -141,6 +141,10 @@ private:
      */
     int parseHeader(string headerLine);
     /**
+     *  Get a named attribute from the header
+     */
+    string getHeaderAttribute(const vector<string>& cols, string attribute);
+    /**
      *  Check for the intron compact notation and parse it
      */
     bool checkForCompactNotation(char a);
@@ -208,6 +212,10 @@ private:
     int proteinStart;
     int proteinLength;
     int alignedProteinLength;
+    int AS;
+    int ms;
+    int positiveMatches;
+    int exactMatches;
     int i;
     string seqid;
     string protein;
