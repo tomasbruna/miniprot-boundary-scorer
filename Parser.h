@@ -10,6 +10,7 @@
 #define OPEN_FAIL 1
 #define FORMAT_FAIL 2
 #define NO_MORE_ALIGNMENTS 3
+#define EMPTY_ALIGNMENT 4
 
 using namespace std;
 

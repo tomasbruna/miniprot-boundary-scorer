@@ -18,9 +18,12 @@ int Parser::parse(string outputFile) {
     int status = parseNext();
 
     while (status != NO_MORE_ALIGNMENTS) {
-        alignment.scoreHints(windowLength, scoreMatrix, kernel);
-        alignment.printHints(outputFile, minExonScore, minInitialExonScore,
-                             minInitialIntronScore);
+        if (status == READ_SUCCESS) {
+            alignment.scoreHints(windowLength, scoreMatrix, kernel);
+            alignment.printHints(outputFile, minExonScore, minInitialExonScore,
+                                 minInitialIntronScore);
+        }
+
         status = parseNext();
     }
 

@@ -55,7 +55,9 @@ int Alignment::parse(istream& inputStream, string headerLine) {
 
     int status = parseHeader(headerLine);
     if (status != READ_SUCCESS) {
-        cerr << "error: Invalid alignment header " << endl;
+        if (status != EMPTY_ALIGNMENT) {
+            cerr << "error: Invalid alignment header " << endl;
+        }
         return status;
     }
 
@@ -121,9 +123,13 @@ int Alignment::parseHeader(string headerLine) {
     while(getline(iss, col, '\t')) {
          cols.push_back(col);
     }
-    if (cols.size() < 12) {
-        cerr << "error: Unexpected number of columns in the header. PAF "
-             << "header should contain at least 12 fields" << endl;
+    if (cols.size() == 12) {
+        return EMPTY_ALIGNMENT;
+    }
+
+    if (cols.size() < 19) {
+        cerr << "error: Unexpected number of columns in the header. Miniprot "
+             << "PAF header should contain 19 fields" << endl;
         return FORMAT_FAIL;
     }
 
