@@ -196,6 +196,7 @@ private:
     void scoreStart(int windowWidth);
     void scoreStop(int windowWidth);
 
+    void printmRNA(ofstream & ofs, char strand);
     void printIntrons(ofstream & ofs, char strand, double minExonScore,
                       double minInitialExonScore, double minInitialIntronScore);
     void printStart(ofstream & ofs, char strand, double minExonScore,

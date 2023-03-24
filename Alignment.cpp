@@ -147,7 +147,9 @@ int Alignment::parseHeader(string headerLine) {
     }
     realPositionCounter = dnaStart;
     seqid = cols[5].c_str();
+    // Alignment score from dynamic programming
     AS = atoi(getHeaderAttribute(cols, "AS:i").c_str());
+    // Alignment score excluding introns
     ms = atoi(getHeaderAttribute(cols, "ms:i").c_str());
     return READ_SUCCESS;
 }
@@ -567,6 +569,7 @@ void Alignment::printHints(string output, double minExonScore,
         strand = '-';
     }
 
+    printmRNA(ofs, strand);
     printIntrons(ofs, strand, minExonScore, minInitialExonScore,
                  minInitialIntronScore);
     printStart(ofs, strand, minExonScore, minInitialExonScore,
@@ -576,6 +579,20 @@ void Alignment::printHints(string output, double minExonScore,
     printStop(ofs, strand, minExonScore);
 
     ofs.close();
+}
+
+void Alignment::printmRNA(ofstream & ofs, char strand){
+    ofs << seqid << "\tminiprot_scorer\tmRNA\t";
+    if (forward) {
+        ofs << dnaStart << "\t";
+        ofs << pairs[exons[exons.size() -1]->end].realPosition << "\t";
+    } else {
+        ofs << pairs[exons[exons.size() -1]->end].realPosition << "\t";
+        ofs << dnaStart << "\t";
+    }
+    ofs << ms << "\t" << strand << "\t.\tprot=" << protein << ";";
+    ofs << " AS=" << AS << ";";
+    ofs << " ms=" << ms << ";\n";
 }
 
 void Alignment::printIntrons(ofstream& ofs, char strand,
