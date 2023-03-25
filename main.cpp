@@ -11,9 +11,9 @@ using namespace std;
 
 #define DEFAULT_WINDOW_WIDTH 10
 #define DEFAULT_KERNEL "triangular"
-#define DEFAULT_EXON_SCORE 25
-#define DEFAULT_INITIAL_EXON_SCORE 25
-#define DEFAULT_INITIAL_INTRON_SCORE 0
+#define DEFAULT_EXON_SCORE -99999999999
+#define DEFAULT_INITIAL_EXON_SCORE -99999999999
+#define DEFAULT_INITIAL_INTRON_SCORE -99999999999
 #define DEFAULT_GAP_PENALTY 4
 #define DEFAULT_BOUNDARY_FRAMESHIFT_PENALTY 4
 #define DEFAULT_EXON_FRAMEHSIFT_STOP_PENALTY 20
@@ -34,20 +34,18 @@ void printUsage(char * name) {
     cout << "   -e Minimum exon score. Exons with lower scores (as wells as int-\n"
             "      rons bordering such low-scoring exons and starts/stops inside\n"
             "      them are not printed). Initial exons are treated separately.\n"
-            "      See the options -x and -i for details. Default = " <<
-            DEFAULT_EXON_SCORE << endl;
+            "      See the options -x and -i for details. Default = report all \n"
+            "      exons." << endl;
     cout << "   -x Minimum initial exon score. Initial exons with lower scores\n"
             "      (as well as introns bordering such low-scoring exons and starts\n"
             "      inside them) are not printed. Initial exons with scores between\n"
             "      (-e and -x) must also define an initial intron which passes the\n"
-            "      -i filter. Default = " <<
-            DEFAULT_INITIAL_EXON_SCORE << endl;
+            "      -i filter. Default = report all initial exons." << endl;
     cout << "   -i Minimum initial intron score. Initial introns bordering\n"
             "      initial exons with scores < -e that have lower intron scores\n"
             "      (as well as initial exons bordering such low-scoring\n"
             "      introns and starts in those exons) are not printed.\n"
-            "      Default = " <<
-            DEFAULT_INITIAL_INTRON_SCORE << endl;
+            "      Default = report all initial introns." << endl;
     cout << "   -g Penalty for gaps, both in exons and around intron boundaries.\n"
             "      Default = " <<
             DEFAULT_GAP_PENALTY << endl;
