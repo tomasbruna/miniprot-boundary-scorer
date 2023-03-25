@@ -218,6 +218,7 @@ private:
     int positiveMatches;
     int exactMatches;
     int i;
+    int idCnt;
     string seqid;
     string protein;
     /// Overall alignment length

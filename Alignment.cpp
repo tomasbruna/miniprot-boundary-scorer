@@ -12,6 +12,7 @@
 using namespace std;
 
 Alignment::Alignment() {
+    idCnt = 0;
     pairs.reserve(N);
     start = NULL;
     stop = NULL;
@@ -22,6 +23,7 @@ Alignment::~Alignment() {
 }
 
 void Alignment::clear() {
+    idCnt++;
     index = 0;
     insideIntron = false;
     donorFlag = false;
@@ -590,7 +592,9 @@ void Alignment::printmRNA(ofstream & ofs, char strand){
         ofs << pairs[exons[exons.size() -1]->end].realPosition << "\t";
         ofs << dnaStart << "\t";
     }
-    ofs << ms << "\t" << strand << "\t.\tprot=" << protein << ";";
+    ofs << ms << "\t" << strand << "\t.\t";
+    ofs << "ID=" << idCnt << ";";
+    ofs << " prot=" << protein << ";";
     ofs << " AS=" << AS << ";";
     ofs << " ms=" << ms << ";\n";
 }
@@ -625,8 +629,10 @@ void Alignment::printIntrons(ofstream& ofs, char strand,
             ofs << pairs[introns[i].end].realPosition << "\t";
             ofs << pairs[introns[i].start].realPosition << "\t";
         }
-        ofs << ".\t" << strand << "\t.\tprot=" << protein;
-        ofs << "; intron_id=" << i + 1 << ";";
+        ofs << ".\t" << strand << "\t.\t";
+        ofs << "Parent=" << idCnt << ";";
+        ofs << " prot=" << protein << ";";
+        ofs << " intron_id=" << i + 1 << ";";
         ofs << " initial=" << introns[i].leftExon->initial << ";";
         ofs << " splice_sites=" << spliceSites << ";";
         ofs << " al_score=" << introns[i].score << ";";
@@ -662,7 +668,9 @@ void Alignment::printStart(ofstream& ofs, char strand,
         ofs << pairs[start->position + 2].realPosition  << "\t";
         ofs << pairs[start->position].realPosition << "\t";
     }
-    ofs << ".\t" << strand << "\t0\tprot=" << protein << ";";
+    ofs << ".\t" << strand << "\t0\t";
+    ofs << "Parent=" << idCnt << ";";
+    ofs << " prot=" << protein << ";";
     ofs << " al_score=" << start->score << ";";
     ofs << " eScore=" << start->exon->score << ";";
     ofs << " eNScore=" << start->exon->normalizedScore << ";";
@@ -713,8 +721,10 @@ void Alignment::printExons(ofstream& ofs, char strand, double minExonScore,
                 ofs << pairs[exons[i]->start].realPosition << "\t";
             }
         }
-        ofs << ".\t" << strand << "\t" << exons[i]->phase << "\tprot=" << protein;
-        ofs << "; exon_id=" << i + 1 << ";";
+        ofs << ".\t" << strand << "\t" << exons[i]->phase << "\t";
+        ofs << "Parent=" << idCnt << ";";
+        ofs << " prot=" << protein << ";";
+        ofs << " exon_id=" << i + 1 << ";";
         ofs << " initial=" << exons[i]->initial << ";";
         ofs << " eScore=" << exons[i]->score << ";";
         ofs << " eNScore=" << exons[i]->normalizedScore << ";\n";
@@ -731,7 +741,9 @@ void Alignment::printStop(ofstream& ofs, char strand, double minExonScore) {
             ofs << pairs[stop->position + 2].realPosition  << "\t";
             ofs << pairs[stop->position].realPosition << "\t";
         }
-        ofs << ".\t" << strand << "\t0\tprot=" << protein << ";";
+        ofs << ".\t" << strand << "\t0\t";
+        ofs << "Parent=" << idCnt << ";";
+        ofs << " prot=" << protein << ";";
         ofs << " al_score=" << stop->score << ";";
         ofs << " eScore=" << stop->exon->score << ";";
 
