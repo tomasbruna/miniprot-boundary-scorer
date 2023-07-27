@@ -129,9 +129,9 @@ int Alignment::parseHeader(string headerLine) {
         return EMPTY_ALIGNMENT;
     }
 
-    if (cols.size() != 19) {
+    if (cols.size() != 19 && cols.size() != 21) {
         cerr << "error: Unexpected number of columns in the header. Miniprot "
-             << "PAF header should contain 19 fields" << endl;
+             << "PAF header should contain 19 or 21 fields" << endl;
         return FORMAT_FAIL;
     }
 
