@@ -32,6 +32,7 @@ void Alignment::clear() {
     ms = 0;
     positiveMatches = 0;
     exactMatches = 0;
+    terminalStop = false;
     introns.clear();
     for (unsigned int i = 0; i < exons.size(); i++) {
         delete exons[i];
@@ -281,9 +282,6 @@ void Alignment::checkForIntron(AlignedPair& pair) {
         exons.push_back(new Exon(index));
     }
     if (pair.nucleotide == '<') {
-        // Proteins ending with a * in the fasta input.
-        // TODO: To properly test this, create a protein input where
-        // every protein ends with a stop codon
         if (pairs[index - 6].protein == '*') {
             exons.back()->end = index - 7;
         } else {
@@ -382,7 +380,18 @@ void Alignment::checkForStart(AlignedPair& pair) {
 
 void Alignment::checkForStop(AlignedPair& pair) {
     if (pair.nucleotide == '<') {
-        if (pairs[index - 3].translatedCodon == '*') {
+        if (pairs[index - 6].translatedCodon == '*' &&
+            pairs[index - 6].protein == '*') {
+            stop = new Codon(index - 6, exons.back());
+            cerr << "Warning: The aligment of " << protein << " ends with " <<
+                    "stop codons aligned to each other. This usually occurs " <<
+                    "when the input protein fasta file contains terminal stop "<<
+                    "codons (stars). The parser accounts for this, however, " <<
+                    "it is advisable to remove the terminal stops from the " <<
+                    "input prior to running miniprot as these can negatively " <<
+                    "affect miniprot itself." << endl;
+            terminalStop = true;
+        } else if (pairs[index - 3].translatedCodon == '*') {
             stop = new Codon(index - 3, exons.back());
         }
     }
@@ -749,7 +758,11 @@ void Alignment::printStop(ofstream& ofs, char strand, double minExonScore) {
         ofs << " eScore=" << stop->exon->score << ";";
 
         bool proteinEnd = false;
-        if (alignedProteinLength + proteinStart - 1 == proteinLength) {
+        int alignedEnd = alignedProteinLength + proteinStart - 1;
+        if (terminalStop) {
+            alignedEnd += 1;
+        }
+        if (alignedEnd == proteinLength) {
             proteinEnd = true;
         }
         ofs << " proteinEnd=" << proteinEnd << ";\n";
