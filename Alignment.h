@@ -217,7 +217,6 @@ private:
     int ms;
     int positiveMatches;
     int exactMatches;
-    bool terminalStop;
     int i;
     int idCnt;
     string seqid;

@@ -32,7 +32,6 @@ void Alignment::clear() {
     ms = 0;
     positiveMatches = 0;
     exactMatches = 0;
-    terminalStop = false;
     introns.clear();
     for (unsigned int i = 0; i < exons.size(); i++) {
         delete exons[i];
@@ -390,7 +389,7 @@ void Alignment::checkForStop(AlignedPair& pair) {
                     "it is advisable to remove the terminal stops from the " <<
                     "input prior to running miniprot as these can negatively " <<
                     "affect miniprot itself." << endl;
-            terminalStop = true;
+            proteinLength -= 1;
         } else if (pairs[index - 3].translatedCodon == '*') {
             stop = new Codon(index - 3, exons.back());
         }
@@ -758,11 +757,7 @@ void Alignment::printStop(ofstream& ofs, char strand, double minExonScore) {
         ofs << " eScore=" << stop->exon->score << ";";
 
         bool proteinEnd = false;
-        int alignedEnd = alignedProteinLength + proteinStart - 1;
-        if (terminalStop) {
-            alignedEnd += 1;
-        }
-        if (alignedEnd == proteinLength) {
+        if (alignedProteinLength + proteinStart - 1 == proteinLength) {
             proteinEnd = true;
         }
         ofs << " proteinEnd=" << proteinEnd << ";\n";
