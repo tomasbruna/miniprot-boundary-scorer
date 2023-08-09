@@ -28,6 +28,7 @@ void Alignment::clear() {
     insideIntron = false;
     donorFlag = false;
     alignedProteinLength = 0;
+    codingAlignmentLength = 0;
     AS = 0;
     ms = 0;
     positiveMatches = 0;
@@ -225,8 +226,12 @@ void Alignment::parseBlock(const vector<string>& lines) {
             }
         }
 
-        if (lines[3][i] >= 'A' && lines[3][i] <= 'Z') {
+        if (isAA(pair.protein)) {
             alignedProteinLength++;
+        }
+
+        if (gapStopOrAA(pair.protein)) {
+            codingAlignmentLength++;
         }
 
         // Reuse space if possible, just memory mgmt
@@ -241,6 +246,13 @@ void Alignment::parseBlock(const vector<string>& lines) {
 
 bool Alignment::gapStopOrAA(char a) {
     if ((a >= 'A' && a <= 'Z') || a == '-' || a == '*') {
+        return true;
+    }
+    return false;
+}
+
+bool Alignment::isAA(char a) {
+    if (a >= 'A' && a <= 'Z') {
         return true;
     }
     return false;
@@ -563,6 +575,9 @@ void Alignment::scoreExon(Exon* exon) {
         } else if (gapStopOrAA(pairs[i].translatedCodon)) {
             exon->score += pairs[i].score(scoreMatrix);
             length++;
+            if (isAA(pairs[i].translatedCodon) && (pairs[i].translatedCodon == pairs[i].protein)) {
+                exactMatches++;
+            }
         }
         i++;
     }
@@ -605,7 +620,8 @@ void Alignment::printmRNA(ofstream & ofs, char strand){
     ofs << " prot=" << protein << ";";
     ofs << " AS=" << AS << ";";
     ofs << " ms=" << ms << ";";
-    ofs << " qcov=" << (double)alignedProteinLength / proteinLength << ";\n";
+    ofs << " qcov=" << (double)alignedProteinLength / proteinLength << ";";
+    ofs << " identity=" << (double)exactMatches / codingAlignmentLength << ";\n";
 }
 
 void Alignment::printIntrons(ofstream& ofs, char strand,

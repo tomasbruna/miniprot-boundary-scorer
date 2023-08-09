@@ -157,6 +157,10 @@ private:
      */
     bool gapStopOrAA(char a);
     /**
+     * Check if the given character is an amino acid
+     */
+    bool isAA(char a);
+    /**
      * Check if the given character represents frameshift
      */
     bool frameshift(char a);
@@ -213,6 +217,7 @@ private:
     int proteinStart;
     int proteinLength;
     int alignedProteinLength;
+    int codingAlignmentLength;
     int AS;
     int ms;
     int positiveMatches;
