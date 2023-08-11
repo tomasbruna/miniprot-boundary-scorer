@@ -621,7 +621,7 @@ void Alignment::printmRNA(ofstream & ofs, char strand){
     ofs << " AS=" << AS << ";";
     ofs << " ms=" << ms << ";";
     ofs << " qcov=" << (double)alignedProteinLength / proteinLength << ";";
-    ofs << " identity=" << (double)exactMatches / codingAlignmentLength << ";\n";
+    ofs << " Identity=" << (double)exactMatches / codingAlignmentLength << ";\n";
 }
 
 void Alignment::printIntrons(ofstream& ofs, char strand,
