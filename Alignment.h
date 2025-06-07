@@ -92,7 +92,7 @@ private:
          */
         char type;
         /// Position of a nucleotide in the alignment relative to a gene start
-        int realPosition;
+        long realPosition;
     };
 
     /// Structure for parsed exons
@@ -212,7 +212,7 @@ private:
     static const int BLOCK_ITEMS_CNT = 4;
     static const int BLOCK_OFFSET = 6;
     /// Starting position of the alignment in DNA
-    int dnaStart;
+    long dnaStart;
     /// Starting position of the alignment in protein
     int proteinStart;
     int proteinLength;
@@ -232,7 +232,7 @@ private:
     int index;
     /// Track position of nucleotides in the alignment relative to seed start
     /// (gaps do not increment the counter)
-    int realPositionCounter;
+    long realPositionCounter;
     bool forward;
     /// Initial size of alignment vector
     static const int N = 3000;

@@ -144,9 +144,9 @@ int Alignment::parseHeader(string headerLine) {
     // miniprot is using bed-style coordinates
     if (cols[4] == "+") {
         forward = true;
-        dnaStart = atoi(cols[7].c_str()) + 1;
+        dnaStart = atol(cols[7].c_str()) + 1;
     } else {
-        dnaStart = atoi(cols[8].c_str());
+        dnaStart = atol(cols[8].c_str());
     }
     realPositionCounter = dnaStart;
     seqid = cols[5].c_str();
